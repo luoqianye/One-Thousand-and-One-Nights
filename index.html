@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>OC 聊天室</title>
+  <style>
+    /* 手机外壳样式 */
+    body { margin: 0; background: #2c2c2c; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    .phone {
+      width: 375px; height: 750px; background: #1a1a1a; border-radius: 40px;
+      padding: 12px; box-shadow: 0 0 0 3px #4a4a4a, 0 0 0 8px #1a1a1a, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+    }
+    .notch {
+      width: 130px; height: 28px; background: #1a1a1a;
+      border-radius: 0 0 20px 20px; margin: -12px auto 8px;
+    }
+    .screen {
+      flex: 1; background: #ededed; border-radius: 32px;
+      overflow: hidden; display: flex; flex-direction: column;
+    }
+    .header {
+      background: #ededed; padding: 12px 16px; text-align: center;
+      border-bottom: 1px solid #ccc; font-weight: bold; font-size: 17px;
+    }
+    .chat-area {
+      flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column;
+      gap: 10px;
+    }
+    .bubble {
+      max-width: 80%; padding: 10px 14px; border-radius: 18px;
+      line-height: 1.4; word-break: break-word; animation: fadeIn 0.2s;
+    }
+    .user { align-self: flex-end; background: #95d469; color: #000; border-bottom-right-radius: 4px; }
+    .oc { align-self: flex-start; background: #fff; color: #000; border-bottom-left-radius: 4px; }
+    .input-area {
+      display: flex; padding: 10px; background: #f7f7f7;
+      border-top: 1px solid #ccc;
+    }
+    .input-area input {
+      flex: 1; border: 1px solid #ccc; border-radius: 20px;
+      padding: 10px 15px; outline: none; font-size: 16px;
+    }
+    .input-area button {
+      margin-left: 8px; background: #07c160; color: white; border: none;
+      border-radius: 50%; width: 40px; height: 40px; font-size: 20px;
+      cursor: pointer;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen">
+      <div class="header">💬 和你的 OC 聊天</div>
+      <div class="chat-area" id="chatArea"></div>
+      <div class="input-area">
+        <input type="text" id="userInput" placeholder="说点什么..." autocomplete="off">
+        <button onclick="send()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chatArea = document.getElementById('chatArea');
+    const userInput = document.getElementById('userInput');
+
+    // 在这里修改你的 OC 设定！想改成谁都行。
+    const SYSTEM_PROMPT = "你是一个名叫「小夜」的原创角色。你是一只拥有淡紫色毛发的猫耳少年，性格温柔、有点害羞，但很会倾听。你正在和你的创作者用手机聊天。请用亲切、带点猫咪口癖（偶尔加‘喵’）的语气回复，每次回复不要太长，像真人聊天一样。";
+
+    let messages = [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "assistant", content: "你好呀，我是小夜。很高兴能和你聊天喵~ 今天想聊什么呢？" }
+    ];
+
+    function addBubble(text, role) {
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble ' + (role === 'user' ? 'user' : 'oc');
+      bubble.textContent = text;
+      chatArea.appendChild(bubble);
+      chatArea.scrollTop = chatArea.scrollHeight;
+      return bubble;
+    }
+
+    // 启动时显示第一条 OC 消息
+    window.onload = () => {
+      addBubble(messages[1].content, 'assistant');
+    };
+
+    async function send() {
+      const text = userInput.value.trim();
+      if (!text) return;
+      userInput.value = '';
+      addBubble(text, 'user');
+      messages.push({ role: "user", content: text });
+
+      // 显示“对方正在输入...”
+      const typingBubble = addBubble('...', 'oc');
+      
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages })
+        });
+
+        if (!response.ok) throw new Error('请求失败');
+        
+        // 处理流式输出
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        typingBubble.textContent = '';
+        let done = false;
+
+        while (!done) {
+          const { value, done: streamDone } = await reader.read();
+          done = streamDone;
+          const chunk = decoder.decode(value, { stream: !done });
+          // 简单解析 SSE 数据行
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.substring(6);
+              if (data === '[DONE]') continue;
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices?.[0]?.delta?.content;
+                if (content) typingBubble.textContent += content;
+                chatArea.scrollTop = chatArea.scrollHeight;
+              } catch (e) {}
+            }
+          }
+        }
+
+        // 记录完整的 AI 回复
+        const fullReply = typingBubble.textContent;
+        messages.push({ role: "assistant", content: fullReply });
+      } catch (err) {
+        typingBubble.textContent = '出了点问题，晚点再试试吧...';
+        console.error(err);
+      }
+    }
+
+    // 按回车发送
+    userInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') send();
+    });
+  </script>
+</body>
+</html>
