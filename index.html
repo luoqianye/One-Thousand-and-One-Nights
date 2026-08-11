@@ -75,6 +75,40 @@
       { role: "assistant", content: "你好呀，我是小鲸鱼。很高兴能和你聊天~ 今天想聊什么呢？" }
     ];
 
+    // --- 新增：保存对话到本地存储 ---
+function saveMessages() {
+  // 过滤掉系统消息（system prompt），只保存用户和助手的对话
+  const toSave = messages.filter(m => m.role === 'user' || m.role === 'assistant');
+  localStorage.setItem('oc_chat_history', JSON.stringify(toSave));
+}
+
+// --- 新增：从本地存储加载对话 ---
+function loadMessages() {
+  const saved = localStorage.getItem('oc_chat_history');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      // 确保是数组，并且里面是有效消息
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // 先把系统设定加到最前面
+        messages = [
+          { role: "system", content: SYSTEM_PROMPT },
+          ...parsed
+        ];
+        // 把历史记录渲染到屏幕上
+        chatArea.innerHTML = ''; // 清空（避免和初始消息重复）
+        for (const msg of parsed) {
+          addBubble(msg.content, msg.role === 'user' ? 'user' : 'oc');
+        }
+        return true; // 表示加载成功
+      }
+    } catch(e) {
+      console.error('读取聊天记录失败', e);
+    }
+  }
+  return false; // 没有记录或读取失败
+}
+    
     function addBubble(text, role) {
       const bubble = document.createElement('div');
       bubble.className = 'bubble ' + (role === 'user' ? 'user' : 'oc');
@@ -86,8 +120,11 @@
 
     // 启动时显示第一条 OC 消息
     window.onload = () => {
-      addBubble(messages[1].content, 'assistant');
-    };
+  // 尝试从本地存储加载历史，如果没有才显示默认欢迎语
+  if (!loadMessages()) {
+    addBubble(messages[1].content, 'assistant');
+  }
+};
 
     async function send() {
       const text = userInput.value.trim();
@@ -137,6 +174,7 @@
         // 记录完整的 AI 回复
         const fullReply = typingBubble.textContent;
         messages.push({ role: "assistant", content: fullReply });
+        saveMessages(); // 保存到本地存储
       } catch (err) {
         typingBubble.textContent = '出了点问题，晚点再试试吧...';
         console.error(err);
