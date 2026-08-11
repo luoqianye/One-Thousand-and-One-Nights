@@ -55,8 +55,6 @@
     <div class="notch"></div>
     <div class="screen">
       <div class="header">💬 和小鲸鱼聊天</div>
-        <span style="float:right; cursor:pointer; font-size:14px;" onclick="clearHistory()">🗑️ 新对话</span>
-</div>
       <div class="chat-area" id="chatArea"></div>
       <div class="input-area">
         <input type="text" id="userInput" placeholder="说点什么..." autocomplete="off">
@@ -64,62 +62,18 @@
       </div>
     </div>
   </div>
-  
+
   <script>
     const chatArea = document.getElementById('chatArea');
     const userInput = document.getElementById('userInput');
-    function clearHistory() {
-  if (confirm('确定要清除所有聊天记录吗？')) {
-    localStorage.removeItem(STORAGE_KEY);
-    // 重置为初始消息
-    messages = [
+
+    // 在这里修改你的 OC 设定！想改成谁都行。
+    const SYSTEM_PROMPT = "你是一个名叫「小鲸鱼」的原创角色。你是一只肥嘟嘟的蓝色虎鲸，性格温柔、可爱，但很会倾听。你正在和你的创作者用手机聊天。请用亲切的语气回复，每次回复不要太长，像真人聊天一样。";
+
+    let messages = [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "assistant", content: "你好呀，我是小夜。很高兴能和你聊天喵~ 今天想聊什么呢？" }
     ];
-    // 刷新聊天区域
-    chatArea.innerHTML = '';
-    addBubble(messages[1].content, 'assistant');
-  }
-}
-
-    // 在这里修改你的 OC 设定！想改成谁都行。
-    const SYSTEM_PROMPT = "你是一个名叫「小鲸鱼」的原创角色。你是一只肥嘟嘟的蓝色虎鲸，性格温柔、有点害羞，但很会倾听。你正在和你的创作者用手机聊天。请用亲切、温柔的语气回复，每次回复不要太长，像真人聊天一样。";
-
-const STORAGE_KEY = 'oc_chat_history';
-
-// 从 localStorage 读取历史，如果没有就使用默认欢迎消息
-function loadHistory() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // 确保至少有系统提示词
-      if (parsed.length > 0 && parsed[0].role === 'system') {
-        return parsed;
-      } else {
-        // 如果保存的数据里没有系统提示词，补在最前面
-        return [{ role: "system", content: SYSTEM_PROMPT }, ...parsed];
-      }
-    }
-  } catch (e) {
-    console.error('读取历史记录失败', e);
-  }
-  // 默认初始消息
-  return [
-    { role: "system", content: SYSTEM_PROMPT },
-    { role: "assistant", content: "你好呀，我是小鲸鱼。很高兴能和你聊天~ 今天想聊什么呢？" }
-  ];
-}
-
-function saveHistory(msgs) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
-  } catch (e) {
-    console.error('保存历史记录失败', e);
-  }
-}
-
-let messages = loadHistory();
 
     function addBubble(text, role) {
       const bubble = document.createElement('div');
@@ -132,13 +86,7 @@ let messages = loadHistory();
 
     // 启动时显示第一条 OC 消息
     window.onload = () => {
-      // 清空聊天区域（其实初始是空的，但以防万一）
-      chatArea.innerHTML = '';
-      // 跳过 system 提示词，从第一条实际对话开始显示
-      const msg = messages[i];
-    addBubble(msg.content, msg.role === 'user' ? 'user' : 'oc');
-  }
-    // 如果历史消息为空，至少会显示一条默认的欢迎消息（已在 loadHistory 里处理）
+      addBubble(messages[1].content, 'assistant');
     };
 
     async function send() {
@@ -187,10 +135,8 @@ let messages = loadHistory();
         }
 
         // 记录完整的 AI 回复
-    const fullReply = typingBubble.textContent;
-    messages.push({ role: "assistant", content: fullReply });
-    // 每次对话后自动保存（包含用户消息和 AI 回复）
-    saveHistory(messages);
+        const fullReply = typingBubble.textContent;
+        messages.push({ role: "assistant", content: fullReply });
       } catch (err) {
         typingBubble.textContent = '出了点问题，晚点再试试吧...';
         console.error(err);
