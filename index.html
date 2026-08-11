@@ -64,16 +64,23 @@
       </div>
     </div>
   </div>
-  function clearHistory() {
-  if (confirm('确定要清除所有聊天记录吗？')) {
-    localStorage.removeItem(STORAGE_KEY);
-    // 直接重新加载页面，让 loadHistory 自动生成默认消息
-    location.reload();
-  }
-}
+  
   <script>
     const chatArea = document.getElementById('chatArea');
     const userInput = document.getElementById('userInput');
+    function clearHistory() {
+  if (confirm('确定要清除所有聊天记录吗？')) {
+    localStorage.removeItem(STORAGE_KEY);
+    // 重置为初始消息
+    messages = [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "assistant", content: "你好呀，我是小夜。很高兴能和你聊天喵~ 今天想聊什么呢？" }
+    ];
+    // 刷新聊天区域
+    chatArea.innerHTML = '';
+    addBubble(messages[1].content, 'assistant');
+  }
+}
 
     // 在这里修改你的 OC 设定！想改成谁都行。
     const SYSTEM_PROMPT = "你是一个名叫「小鲸鱼」的原创角色。你是一只肥嘟嘟的蓝色虎鲸，性格温柔、有点害羞，但很会倾听。你正在和你的创作者用手机聊天。请用亲切、温柔的语气回复，每次回复不要太长，像真人聊天一样。";
