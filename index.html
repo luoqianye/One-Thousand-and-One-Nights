@@ -48,6 +48,29 @@
       cursor: pointer;
     }
     .hint { text-align: center; font-size: 12px; color: #999; margin: 4px 0; }
+    .bubble { -webkit-touch-callout: none; }
+    .bubble.press-hint { box-shadow: 0 0 0 2px #07c160; }
+    .bubble.editing { border: 2px solid #07c160; }
+    .msg-menu {
+      position: fixed; z-index: 1000; background: #fff; border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25); padding: 6px 0; min-width: 130px;
+    }
+    .msg-menu-item {
+      padding: 10px 16px; font-size: 14px; color: #333; cursor: pointer;
+    }
+    .msg-menu-item:active { background: #f0f0f0; }
+    .msg-menu-item.danger { color: #e64340; }
+    .edit-input {
+      width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px;
+      padding: 6px 8px; font-size: 14px; font-family: inherit; resize: none;
+      min-height: 40px; background: #fff; color: #000;
+    }
+    .edit-btns { display: flex; gap: 6px; margin-top: 6px; }
+    .edit-btns button {
+      flex: 1; border: none; border-radius: 8px; padding: 6px 0; font-size: 12px; cursor: pointer;
+    }
+    .edit-btns button:first-child { background: #07c160; color: #fff; }
+    .edit-btns button:last-child { background: #eee; color: #333; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   </style>
 </head>
@@ -97,10 +120,7 @@ function loadMessages() {
           ...parsed
         ];
         // 把历史记录渲染到屏幕上
-        chatArea.innerHTML = ''; // 清空（避免和初始消息重复）
-        for (const msg of parsed) {
-          addBubble(msg.content, msg.role === 'user' ? 'user' : 'oc');
-        }
+        renderAll();
         return true; // 表示加载成功
       }
     } catch(e) {
@@ -123,7 +143,7 @@ function loadMessages() {
     window.onload = () => {
   // 尝试从本地存储加载历史，如果没有才显示默认欢迎语
   if (!loadMessages()) {
-    addBubble(messages[1].content, 'assistant');
+    renderAll();
   }
 };
 
@@ -142,9 +162,9 @@ function loadMessages() {
       if (text) {
         // 有输入：只发送用户消息，不调用 API
         userInput.value = '';
-        addBubble(text, 'user');
         messages.push({ role: "user", content: text });
         saveMessages();
+        renderAll();
         if (!hintShown) {
           hintShown = true;
           addHint('消息已发送 ~ 再点一次发送键让小鲸鱼回复你');
@@ -162,6 +182,188 @@ function loadMessages() {
       hint.textContent = text;
       chatArea.appendChild(hint);
       chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    // ============ 气泡操作：长按 3 秒 / 鼠标右键 ============
+    // bubbles 与 messages 中非 system 消息一一对应
+    let bubbles = [];
+    let bubbleMsgIndices = [];
+
+    // 重新渲染整个聊天区（编辑/删除/加载后调用）
+    function renderAll() {
+      chatArea.innerHTML = '';
+      bubbles = [];
+      bubbleMsgIndices = [];
+      for (let i = 0; i < messages.length; i++) {
+        const m = messages[i];
+        if (m.role === 'system') continue;
+        const b = addBubble(m.content, m.role === 'user' ? 'user' : 'oc');
+        bubbles.push(b);
+        bubbleMsgIndices.push(i);
+        attachBubbleEvents(b);
+      }
+    }
+
+    // 给气泡绑定：右键菜单 + 长按 3 秒菜单
+    function attachBubbleEvents(bubble) {
+      // 桌面端：鼠标右键
+      bubble.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        showMessageMenu(e.clientX, e.clientY, bubble);
+      });
+
+      // 移动端：长按 3 秒
+      let pressTimer = null;
+      bubble.addEventListener('touchstart', (e) => {
+        const t = e.touches[0];
+        const tx = t.clientX, ty = t.clientY;
+        bubble.classList.add('press-hint');
+        pressTimer = setTimeout(() => {
+          bubble.classList.remove('press-hint');
+          if (navigator.vibrate) navigator.vibrate(50); // 震动反馈
+          showMessageMenu(tx, ty, bubble);
+        }, 3000);
+      }, { passive: true });
+
+      const clearPress = () => {
+        clearTimeout(pressTimer);
+        bubble.classList.remove('press-hint');
+      };
+      bubble.addEventListener('touchend', clearPress);
+      bubble.addEventListener('touchmove', clearPress);
+      bubble.addEventListener('touchcancel', clearPress);
+    }
+
+    // 弹出气泡操作菜单
+    function showMessageMenu(x, y, bubble) {
+      const bi = bubbles.indexOf(bubble);
+      if (bi < 0) return; // 临时气泡（如"..."）不弹菜单
+      const mi = bubbleMsgIndices[bi];
+      const msg = messages[mi];
+
+      closeMessageMenu();
+      const menu = document.createElement('div');
+      menu.className = 'msg-menu';
+
+      addMenuItem(menu, '编辑消息', () => editMessage(mi));
+      addMenuItem(menu, '删除消息', () => deleteMessage(mi), true);
+      // 只有 AI 回复（assistant）才允许"重新生成"
+      if (msg.role === 'assistant') {
+        addMenuItem(menu, '重新生成', () => regenerateMessage(mi));
+      }
+
+      document.body.appendChild(menu);
+
+      // 定位（防止超出屏幕）
+      const mw = menu.offsetWidth;
+      const mh = menu.offsetHeight;
+      let left = x, top = y;
+      if (left + mw > window.innerWidth) left = window.innerWidth - mw - 8;
+      if (top + mh > window.innerHeight) top = window.innerHeight - mh - 8;
+      menu.style.left = left + 'px';
+      menu.style.top = top + 'px';
+
+      // 点击任意其他地方关闭菜单
+      setTimeout(() => {
+        document.addEventListener('click', closeMessageMenu, { once: true });
+      }, 10);
+    }
+
+    function addMenuItem(menu, label, action, danger) {
+      const item = document.createElement('div');
+      item.className = 'msg-menu-item' + (danger ? ' danger' : '');
+      item.textContent = label;
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        action();
+      });
+      menu.appendChild(item);
+    }
+
+    function closeMessageMenu() {
+      const old = document.querySelector('.msg-menu');
+      if (old) old.remove();
+    }
+
+    // 编辑消息：气泡内联编辑，保存后截断后续对话（后续内容基于旧上下文）
+    function editMessage(mi) {
+      closeMessageMenu();
+      const bi = bubbleMsgIndices.indexOf(mi);
+      const bubble = bubbles[bi];
+      if (!bubble) return;
+
+      const msg = messages[mi];
+      bubble.innerHTML = '';
+      bubble.classList.add('editing');
+
+      const ta = document.createElement('textarea');
+      ta.className = 'edit-input';
+      ta.value = msg.content;
+      bubble.appendChild(ta);
+
+      const btns = document.createElement('div');
+      btns.className = 'edit-btns';
+      const saveBtn = document.createElement('button');
+      saveBtn.textContent = '✓ 保存';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.textContent = '✗ 取消';
+      btns.appendChild(saveBtn);
+      btns.appendChild(cancelBtn);
+      bubble.appendChild(btns);
+
+      let finished = false;
+      let onDocClick = null;
+
+      const finish = (save) => {
+        if (finished) return;
+        finished = true;
+        document.removeEventListener('click', onDocClick);
+        bubble.classList.remove('editing');
+        if (save) {
+          const newText = ta.value.trim();
+          if (newText) {
+            // 编辑后，该消息之后的内容都基于旧上下文，一并截断
+            messages.splice(mi + 1);
+            msg.content = newText;
+            saveMessages();
+          }
+        }
+        renderAll();
+      };
+
+      onDocClick = (e) => {
+        if (!bubble.contains(e.target)) finish(false);
+      };
+
+      saveBtn.onclick = () => finish(true);
+      cancelBtn.onclick = () => finish(false);
+      ta.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          finish(true);
+        }
+      });
+      setTimeout(() => document.addEventListener('click', onDocClick), 10);
+
+      ta.focus();
+      ta.setSelectionRange(ta.value.length, ta.value.length);
+    }
+
+    // 删除消息：删除该消息及其后的所有消息（保持对话连贯）
+    function deleteMessage(mi) {
+      closeMessageMenu();
+      messages.splice(mi);
+      saveMessages();
+      renderAll();
+    }
+
+    // 重新生成：删掉该回复及其后内容，立即重新调用 API
+    function regenerateMessage(mi) {
+      closeMessageMenu();
+      messages.splice(mi);
+      saveMessages();
+      renderAll();
+      generateReply();
     }
 
     async function generateReply() {
@@ -213,6 +415,7 @@ function loadMessages() {
         const fullReply = typingBubble.textContent;
         messages.push({ role: "assistant", content: fullReply });
         saveMessages(); // 保存到本地存储
+        renderAll();
       } catch (err) {
         typingBubble.textContent = '出了点问题，晚点再试试吧...';
         console.error(err);
