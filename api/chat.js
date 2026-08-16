@@ -6,7 +6,10 @@ export default async function handler(req, res) {
 
   const { messages } = req.body;
   const apiKey = process.env.OPENAI_API_KEY;
-  const baseUrl = process.env.API_BASE_URL || 'https://api.openai.com/v1';
+  const baseUrl = (process.env.API_BASE_URL || 'https://api.deepseek.com/v1').replace(/\/+$/, '');
+  // 模型名做成可配置：默认 deepseek-chat（DeepSeek 官方对话模型名）
+  // 注意：deepseek-v4-flash 不是 DeepSeek 官方模型名，调用官方 API 会 400 报错
+  const model = process.env.MODEL || 'deepseek-chat';
 
   if (!apiKey) {
     return res.status(500).json({ error: 'API Key 未配置，请在 Vercel 环境变量中设置 OPENAI_API_KEY' });
@@ -20,7 +23,7 @@ export default async function handler(req, res) {
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: 'deepseek-v4-flash',   // 模型名字可按你用的 API 改
+        model,   // 默认 deepseek-chat，可用环境变量 MODEL 覆盖
         messages,
         stream: true,
         temperature: 0.7,

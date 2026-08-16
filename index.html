@@ -47,6 +47,7 @@
       border-radius: 50%; width: 40px; height: 40px; font-size: 20px;
       cursor: pointer;
     }
+    .hint { text-align: center; font-size: 12px; color: #999; margin: 4px 0; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   </style>
 </head>
@@ -126,16 +127,47 @@ function loadMessages() {
   }
 };
 
-    async function send() {
+    // 是否正在生成回复（防止重复点击）
+    let isGenerating = false;
+
+    // 发送消息 / 触发 AI 回复：
+    // - 输入框有内容 → 只把用户消息发出去，AI 不会立即回复
+    // - 输入框空闲（空）→ 再点一次发送键，才调用 API 生成回复
+    function send() {
       const text = userInput.value.trim();
-      if (!text) return;
-      userInput.value = '';
-      addBubble(text, 'user');
-      messages.push({ role: "user", content: text });
+
+      if (text) {
+        // 有输入：只发送用户消息，不调用 API
+        userInput.value = '';
+        addBubble(text, 'user');
+        messages.push({ role: "user", content: text });
+        saveMessages();
+        addHint('消息已发送 ~ 再点一次发送键让小鲸鱼回复你');
+        return;
+      }
+
+      // 输入框空闲：手动触发 AI 回复
+      generateReply();
+    }
+
+    function addHint(text) {
+      const hint = document.createElement('div');
+      hint.className = 'hint';
+      hint.textContent = text;
+      chatArea.appendChild(hint);
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    async function generateReply() {
+      if (isGenerating) return;
+      // 没有任何用户消息时，不调用 API
+      if (!messages.some(m => m.role === 'user')) return;
+
+      isGenerating = true;
 
       // 显示“对方正在输入...”
       const typingBubble = addBubble('...', 'oc');
-      
+
       try {
         const response = await fetch('/api/chat', {
           method: 'POST',
@@ -144,7 +176,7 @@ function loadMessages() {
         });
 
         if (!response.ok) throw new Error('请求失败');
-        
+
         // 处理流式输出
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
@@ -178,6 +210,8 @@ function loadMessages() {
       } catch (err) {
         typingBubble.textContent = '出了点问题，晚点再试试吧...';
         console.error(err);
+      } finally {
+        isGenerating = false;
       }
     }
 
