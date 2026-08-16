@@ -2,62 +2,115 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>OC 聊天室</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>一千零一夜</title>
   <style>
-    /* 手机外壳样式 */
-    body { margin: 0; background: #2c2c2c; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
-    .phone {
-      width: 375px; height: 750px; background: #1a1a1a; border-radius: 40px;
-      padding: 12px; box-shadow: 0 0 0 3px #4a4a4a, 0 0 0 8px #1a1a1a, 0 20px 60px rgba(0,0,0,0.5);
+    /* ============ 响应式布局：手机全屏 / 桌面分栏 ============ */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      background: linear-gradient(160deg, #dceefc 0%, #c3e0f7 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      display: flex; justify-content: center; align-items: center;
+    }
+
+    .app {
+      display: flex;
+      width: 100%;
+      height: 100vh;              /* 手机端：全屏 */
+      background: #ededed;
+      overflow: hidden;
+    }
+
+    /* 桌面端：居中圆角卡片 + 分栏 */
+    @media (min-width: 768px) {
+      body { padding: 4vh 24px; }
+      .app {
+        max-width: 920px;
+        height: min(92vh, 780px);
+        border-radius: 22px;
+        box-shadow: 0 24px 80px rgba(30, 60, 110, 0.25);
+      }
+    }
+
+    /* ---- 左侧角色卡（仅桌面显示） ---- */
+    .sidebar { display: none; }
+    @media (min-width: 768px) {
+      .sidebar {
+        display: flex; flex-direction: column;
+        width: 250px; flex-shrink: 0;
+        background: linear-gradient(180deg, #2e6fb5 0%, #1c4f92 100%);
+        color: #fff; padding: 28px 20px 20px;
+      }
+      .oc-avatar {
+        width: 84px; height: 84px; border-radius: 50%;
+        background: #fff; font-size: 44px;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 14px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      }
+      .oc-name { text-align: center; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+      .oc-tag {
+        font-size: 12px; background: rgba(255,255,255,0.18);
+        border-radius: 999px; padding: 3px 12px;
+        margin: 0 auto 16px; display: inline-block; align-self: center;
+      }
+      .oc-desc {
+        font-size: 13px; line-height: 1.7; color: rgba(255,255,255,0.92);
+        background: rgba(255,255,255,0.1); border-radius: 12px; padding: 12px;
+      }
+      .sidebar-tip {
+        margin-top: auto; font-size: 12px; color: rgba(255,255,255,0.65);
+        text-align: center; line-height: 1.7;
+      }
+    }
+
+    /* ---- 右侧聊天面板 ---- */
+    .chat-panel {
+      flex: 1; min-width: 0;
       display: flex; flex-direction: column;
-    }
-    .notch {
-      width: 130px; height: 28px; background: #1a1a1a;
-      border-radius: 0 0 20px 20px; margin: -12px auto 8px;
-    }
-    .screen {
-      flex: 1; background: #ededed; border-radius: 32px;
-      overflow: hidden; display: flex; flex-direction: column;
+      background: #ededed;
     }
     .header {
-      background: #ededed; padding: 12px 16px; text-align: center;
-      border-bottom: 1px solid #ccc; font-weight: bold; font-size: 17px;
+      background: #ededed; padding: 14px 16px; text-align: center;
+      border-bottom: 1px solid #d5d5d5; font-weight: bold; font-size: 16px;
+      color: #333;
     }
     .chat-area {
-      flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column;
-      gap: 10px;
+      flex: 1; padding: 12px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 10px;
     }
     .bubble {
       max-width: 80%; padding: 10px 14px; border-radius: 18px;
       line-height: 1.4; word-break: break-word; animation: fadeIn 0.2s;
+      -webkit-touch-callout: none;
     }
+    @media (min-width: 768px) { .bubble { max-width: 70%; } }
     .user { align-self: flex-end; background: #95d469; color: #000; border-bottom-right-radius: 4px; }
     .oc { align-self: flex-start; background: #fff; color: #000; border-bottom-left-radius: 4px; }
     .input-area {
-      display: flex; padding: 10px; background: #f7f7f7;
-      border-top: 1px solid #ccc;
+      display: flex; padding: 10px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+      background: #f7f7f7; border-top: 1px solid #d5d5d5;
     }
     .input-area input {
       flex: 1; border: 1px solid #ccc; border-radius: 20px;
-      padding: 10px 15px; outline: none; font-size: 16px;
+      padding: 10px 15px; outline: none; font-size: 16px; background: #fff;
     }
     .input-area button {
       margin-left: 8px; background: #07c160; color: white; border: none;
       border-radius: 50%; width: 40px; height: 40px; font-size: 20px;
-      cursor: pointer;
+      cursor: pointer; flex-shrink: 0;
     }
+
     .hint { text-align: center; font-size: 12px; color: #999; margin: 4px 0; }
-    .bubble { -webkit-touch-callout: none; }
     .bubble.press-hint { box-shadow: 0 0 0 2px #07c160; }
     .bubble.editing { border: 2px solid #07c160; }
     .msg-menu {
       position: fixed; z-index: 1000; background: #fff; border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.25); padding: 6px 0; min-width: 130px;
     }
-    .msg-menu-item {
-      padding: 10px 16px; font-size: 14px; color: #333; cursor: pointer;
-    }
+    .msg-menu-item { padding: 10px 16px; font-size: 14px; color: #333; cursor: pointer; }
     .msg-menu-item:active { background: #f0f0f0; }
     .msg-menu-item.danger { color: #e64340; }
     .edit-input {
@@ -66,25 +119,30 @@
       min-height: 40px; background: #fff; color: #000;
     }
     .edit-btns { display: flex; gap: 6px; margin-top: 6px; }
-    .edit-btns button {
-      flex: 1; border: none; border-radius: 8px; padding: 6px 0; font-size: 12px; cursor: pointer;
-    }
+    .edit-btns button { flex: 1; border: none; border-radius: 8px; padding: 6px 0; font-size: 12px; cursor: pointer; }
     .edit-btns button:first-child { background: #07c160; color: #fff; }
     .edit-btns button:last-child { background: #eee; color: #333; }
+
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   </style>
 </head>
 <body>
-  <div class="phone">
-    <div class="notch"></div>
-    <div class="screen">
+  <div class="app">
+    <aside class="sidebar">
+      <div class="oc-avatar">🐳</div>
+      <div class="oc-name">小鲸鱼</div>
+      <div class="oc-tag">原创角色 · OC</div>
+      <div class="oc-desc">一只肥嘟嘟的蓝色虎鲸，性格温柔、可爱，但很会倾听。此刻正等着和你聊天呢~</div>
+      <div class="sidebar-tip">💡 右键 / 长按气泡<br>可编辑、删除、重新生成</div>
+    </aside>
+    <main class="chat-panel">
       <div class="header">💬 和小鲸鱼聊天</div>
       <div class="chat-area" id="chatArea"></div>
       <div class="input-area">
         <input type="text" id="userInput" placeholder="说点什么..." autocomplete="off">
         <button onclick="send()">➤</button>
       </div>
-    </div>
+    </main>
   </div>
 
   <script>
@@ -92,21 +150,21 @@
     const userInput = document.getElementById('userInput');
 
     // 在这里修改你的 OC 设定！想改成谁都行。
-    const SYSTEM_PROMPT = "你是一个名叫「小鲸鱼」的原创角色。你是一只肥嘟嘟的蓝色虎鲸，性格温柔、可爱，但很会倾听。你正在和你的创作者用手机聊天。请用亲切的语气回复，每次回复不要太长，像真人聊天一样。";
+    const SYSTEM_PROMPT = "你是一个名叫「小鲸鱼」的原创角色。你是一只肥嘟嘟的蓝色虎鲸，性格温柔、可爱，但很会倾听。你正在和你的创作者聊天。请用亲切的语气回复，每次回复不要太长，像真人聊天一样。";
 
     let messages = [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "assistant", content: "你好呀，我是小鲸鱼。很高兴能和你聊天~ 今天想聊什么呢？" }
     ];
 
-    // --- 新增：保存对话到本地存储 ---
+    // --- 保存对话到本地存储 ---
 function saveMessages() {
   // 过滤掉系统消息（system prompt），只保存用户和助手的对话
   const toSave = messages.filter(m => m.role === 'user' || m.role === 'assistant');
   localStorage.setItem('oc_chat_history', JSON.stringify(toSave));
 }
 
-// --- 新增：从本地存储加载对话 ---
+// --- 从本地存储加载对话 ---
 function loadMessages() {
   const saved = localStorage.getItem('oc_chat_history');
   if (saved) {
