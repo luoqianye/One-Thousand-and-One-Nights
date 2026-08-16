@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
   <title>一千零一夜</title>
   <style>
-    /* ============ 响应式布局：手机全屏 / 桌面分栏 ============ */
+    /* ============ 基础：响应式布局 ============ */
     * { box-sizing: border-box; }
     body {
       margin: 0; min-height: 100vh;
@@ -13,16 +13,15 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
       display: flex; justify-content: center; align-items: center;
     }
-
     .app {
-      display: flex;
       width: 100%;
       height: 100vh;              /* 手机端：全屏 */
-      background: #ededed;
+      background: #f0f4fa;
       overflow: hidden;
+      position: relative;
     }
 
-    /* 桌面端：居中圆角卡片 + 分栏 */
+    /* 桌面端：居中圆角卡片 */
     @media (min-width: 768px) {
       body { padding: 4vh 24px; }
       .app {
@@ -33,7 +32,89 @@
       }
     }
 
-    /* ---- 左侧角色卡（仅桌面显示） ---- */
+    /* ============ 视图切换 ============ */
+    .view { display: none; width: 100%; height: 100%; }
+    .view.active { display: flex; }
+
+    /* ============ 主界面 ============ */
+    #homeView {
+      flex-direction: column;
+      padding: 20px 16px;
+      gap: 16px;
+      overflow-y: auto;
+      background: #f0f4fa;
+    }
+    /* 顶部时钟卡片（预留时钟插件位置） */
+    .clock-card {
+      background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
+      border-radius: 20px; padding: 22px 20px; color: #fff;
+      box-shadow: 0 10px 30px rgba(30, 58, 138, 0.3);
+    }
+    .clock-row { display: flex; align-items: center; justify-content: space-between; }
+    .clock-moon { font-size: 40px; opacity: 0.95; }
+    .clock-time {
+      font-size: 46px; font-weight: 700; letter-spacing: 2px;
+      font-variant-numeric: tabular-nums; line-height: 1.1;
+    }
+    .clock-date { margin-top: 6px; font-size: 13px; color: rgba(255,255,255,0.78); }
+    .clock-hint { margin-top: 14px; font-size: 11px; color: rgba(255,255,255,0.4); }
+
+    /* 功能区 2×4 网格：同行一宽一窄（2/3 : 1/3），逐行左右交替 */
+    .fun-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr); /* 6 等分：宽卡 4 份(2/3)，窄卡 2 份(1/3) */
+      gap: 12px;
+    }
+    .fun-card {
+      border: none; cursor: pointer; font-family: inherit;
+      border-radius: 16px; padding: 16px; color: #fff;
+      display: flex; align-items: center; gap: 12px;
+      min-height: 88px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+      transition: transform 0.15s;
+    }
+    .fun-card:active { transform: scale(0.97); }
+    /* 窄卡片：竖排居中 */
+    .fun-card.narrow {
+      flex-direction: column; justify-content: center; gap: 6px;
+      padding: 12px; text-align: center;
+    }
+    .fun-icon { font-size: 26px; line-height: 1; flex-shrink: 0; }
+    .fun-name { font-size: 15px; font-weight: 700; }
+    .fun-desc { font-size: 11px; opacity: 0.88; margin-top: 2px; line-height: 1.4; }
+
+    /* 宽窄位置：行1/3 左宽右窄，行2/4 左窄右宽 */
+    .f1 { grid-column: 1 / span 4; }
+    .f2 { grid-column: 5 / span 2; }
+    .f3 { grid-column: 1 / span 2; }
+    .f4 { grid-column: 3 / span 4; }
+    .f5 { grid-column: 1 / span 4; }
+    .f6 { grid-column: 5 / span 2; }
+    .f7 { grid-column: 1 / span 2; }
+    .f8 { grid-column: 3 / span 4; }
+
+    /* 各功能区主题色 */
+    .f-chat     { background: linear-gradient(135deg, #34d399 0%, #0ea5a4 100%); }
+    .f-story    { background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); }
+    .f-genie    { background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%); }
+    .f-map      { background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); }
+    .f-music    { background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%); }
+    .f-chara    { background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%); }
+    .f-vault    { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
+    .f-settings { background: linear-gradient(135deg, #64748b 0%, #475569 100%); }
+
+    /* 窄屏：卡片压缩，保持宽窄比例 */
+    @media (max-width: 480px) {
+      .fun-grid { gap: 10px; }
+      .fun-card { padding: 13px; min-height: 80px; gap: 10px; }
+      .fun-card.narrow { padding: 10px; gap: 5px; }
+      .fun-icon { font-size: 22px; }
+      .fun-name { font-size: 14px; }
+    }
+
+    /* ============ 聊天视图（含桌面角色卡分栏） ============ */
+    #chatView { flex-direction: row; background: #ededed; }
+
     .sidebar { display: none; }
     @media (min-width: 768px) {
       .sidebar {
@@ -65,17 +146,24 @@
       }
     }
 
-    /* ---- 右侧聊天面板 ---- */
     .chat-panel {
       flex: 1; min-width: 0;
       display: flex; flex-direction: column;
       background: #ededed;
     }
     .header {
-      background: #ededed; padding: 14px 16px; text-align: center;
+      position: relative;
+      background: #ededed; padding: 14px 48px; text-align: center;
       border-bottom: 1px solid #d5d5d5; font-weight: bold; font-size: 16px;
       color: #333;
     }
+    .back-btn {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; font-size: 22px; color: #333; cursor: pointer;
+      padding: 4px 10px; border-radius: 10px; line-height: 1;
+    }
+    .back-btn:active { background: rgba(0,0,0,0.08); }
+
     .chat-area {
       flex: 1; padding: 12px; overflow-y: auto;
       display: flex; flex-direction: column; gap: 10px;
@@ -123,32 +211,149 @@
     .edit-btns button:first-child { background: #07c160; color: #fff; }
     .edit-btns button:last-child { background: #eee; color: #333; }
 
+    /* 轻提示 */
+    .toast {
+      position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%) translateY(20px);
+      background: rgba(0,0,0,0.78); color: #fff; font-size: 13px;
+      padding: 10px 18px; border-radius: 999px; z-index: 2000;
+      opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none;
+      max-width: 80%; text-align: center; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   </style>
 </head>
 <body>
   <div class="app">
-    <aside class="sidebar">
-      <div class="oc-avatar">🐳</div>
-      <div class="oc-name">小鲸鱼</div>
-      <div class="oc-tag">原创角色 · OC</div>
-      <div class="oc-desc">一只肥嘟嘟的蓝色虎鲸，性格温柔、可爱，但很会倾听。此刻正等着和你聊天呢~</div>
-      <div class="sidebar-tip">💡 右键 / 长按气泡<br>可编辑、删除、重新生成</div>
-    </aside>
-    <main class="chat-panel">
-      <div class="header">💬 和小鲸鱼聊天</div>
-      <div class="chat-area" id="chatArea"></div>
-      <div class="input-area">
-        <input type="text" id="userInput" placeholder="说点什么..." autocomplete="off">
-        <button onclick="send()">➤</button>
+
+    <!-- ================= 主界面 ================= -->
+    <main id="homeView" class="view active">
+      <!-- 顶部时钟插件（预留位置，当前为基础时钟） -->
+      <div class="clock-card">
+        <div class="clock-row">
+          <div>
+            <div class="clock-time" id="clockTime">--:--:--</div>
+            <div class="clock-date" id="clockDate">----年--月--日</div>
+          </div>
+          <div class="clock-moon">🌙</div>
+        </div>
+        <div class="clock-hint">⏰ 时钟插件位 · 可后续升级为天气/日程等</div>
+      </div>
+
+      <!-- 功能区：2×4 网格（同行一宽一窄 2/3:1/3，行1/3 左宽右窄，行2/4 左窄右宽） -->
+      <div class="fun-grid">
+        <button class="fun-card f1 f-chat" onclick="openChat()">
+          <span class="fun-icon">🐳</span>
+          <span>
+            <span class="fun-name">对话聊天</span>
+            <span class="fun-desc">和小鲸鱼说说话~</span>
+          </span>
+        </button>
+        <button class="fun-card narrow f2 f-story" onclick="showToast('「故事集」开发中，敬请期待~')">
+          <span class="fun-icon">📖</span>
+          <span class="fun-name">故事集</span>
+        </button>
+        <button class="fun-card narrow f3 f-genie" onclick="showToast('「灯神」开发中，敬请期待~')">
+          <span class="fun-icon">🧞</span>
+          <span class="fun-name">灯神</span>
+        </button>
+        <button class="fun-card f4 f-map" onclick="showToast('「冒险地图」开发中，敬请期待~')">
+          <span class="fun-icon">🗺️</span>
+          <span>
+            <span class="fun-name">冒险地图</span>
+            <span class="fun-desc">探索一千零一夜的世界</span>
+          </span>
+        </button>
+        <button class="fun-card f5 f-music" onclick="showToast('「音乐盒」开发中，敬请期待~')">
+          <span class="fun-icon">🎵</span>
+          <span>
+            <span class="fun-name">音乐盒</span>
+            <span class="fun-desc">收集夜的旋律</span>
+          </span>
+        </button>
+        <button class="fun-card narrow f6 f-chara" onclick="showToast('「角色档案」开发中，敬请期待~')">
+          <span class="fun-icon">📜</span>
+          <span class="fun-name">角色档案</span>
+        </button>
+        <button class="fun-card narrow f7 f-vault" onclick="showToast('「宝库」开发中，敬请期待~')">
+          <span class="fun-icon">🏺</span>
+          <span class="fun-name">宝库</span>
+        </button>
+        <button class="fun-card f8 f-settings" onclick="showToast('「设置」开发中，敬请期待~')">
+          <span class="fun-icon">⚙️</span>
+          <span>
+            <span class="fun-name">设置</span>
+            <span class="fun-desc">偏好与连接配置</span>
+          </span>
+        </button>
       </div>
     </main>
+
+    <!-- ================= 对话聊天视图 ================= -->
+    <section id="chatView" class="view">
+      <aside class="sidebar">
+        <div class="oc-avatar">🐳</div>
+        <div class="oc-name">小鲸鱼</div>
+        <div class="oc-tag">原创角色 · OC</div>
+        <div class="oc-desc">一只肥嘟嘟的蓝色虎鲸，性格温柔、可爱，但很会倾听。此刻正等着和你聊天呢~</div>
+        <div class="sidebar-tip">💡 右键 / 长按气泡<br>可编辑、删除、重新生成</div>
+      </aside>
+      <div class="chat-panel">
+        <div class="header">
+          <button class="back-btn" onclick="goHome()" title="返回主界面">←</button>
+          <span>💬 和小鲸鱼聊天</span>
+        </div>
+        <div class="chat-area" id="chatArea"></div>
+        <div class="input-area">
+          <input type="text" id="userInput" placeholder="说点什么..." autocomplete="off">
+          <button onclick="send()">➤</button>
+        </div>
+      </div>
+    </section>
+
   </div>
 
   <script>
     const chatArea = document.getElementById('chatArea');
     const userInput = document.getElementById('userInput');
 
+    // ================= 视图切换 =================
+    function showView(id) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+    function openChat() { showView('chatView'); }
+    function goHome() { closeMessageMenu(); showView('homeView'); }
+
+    // ================= 顶部时钟 =================
+    function updateClock() {
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const time = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+      const week = ['日', '一', '二', '三', '四', '五', '六'][now.getDay()];
+      const date = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日 星期${week}`;
+      document.getElementById('clockTime').textContent = time;
+      document.getElementById('clockDate').textContent = date;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ================= 轻提示（toast） =================
+    function showToast(text) {
+      let t = document.querySelector('.toast');
+      if (!t) {
+        t = document.createElement('div');
+        t.className = 'toast';
+        document.body.appendChild(t);
+      }
+      t.textContent = text;
+      t.classList.add('show');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(() => t.classList.remove('show'), 1600);
+    }
+
+    // ================= 聊天逻辑 =================
     // 在这里修改你的 OC 设定！想改成谁都行。
     const SYSTEM_PROMPT = "你是一个名叫「小鲸鱼」的原创角色。你是一只肥嘟嘟的蓝色虎鲸，性格温柔、可爱，但很会倾听。你正在和你的创作者聊天。请用亲切的语气回复，每次回复不要太长，像真人聊天一样。";
 
