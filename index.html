@@ -130,6 +130,9 @@ function loadMessages() {
     // 是否正在生成回复（防止重复点击）
     let isGenerating = false;
 
+    // 提示是否已显示过（只提示一次，不每条消息都提示）
+    let hintShown = false;
+
     // 发送消息 / 触发 AI 回复：
     // - 输入框有内容 → 只把用户消息发出去，AI 不会立即回复
     // - 输入框空闲（空）→ 再点一次发送键，才调用 API 生成回复
@@ -142,7 +145,10 @@ function loadMessages() {
         addBubble(text, 'user');
         messages.push({ role: "user", content: text });
         saveMessages();
-        addHint('消息已发送 ~ 再点一次发送键让小鲸鱼回复你');
+        if (!hintShown) {
+          hintShown = true;
+          addHint('消息已发送 ~ 再点一次发送键让小鲸鱼回复你');
+        }
         return;
       }
 
