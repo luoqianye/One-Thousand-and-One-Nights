@@ -14,7 +14,7 @@
 ## 项目结构（迁移后）
 
 ```
-One-Thousand-and-One-Nights/
+Thousand-Pages-Memory/
 ├── index.html          # 页面（无需改动，/api/chat 相对路径自动指向边缘函数）
 ├── functions/
 │   └── api/
@@ -30,13 +30,13 @@ One-Thousand-and-One-Nights/
 
 ### 1. 前置准备
 - 注册[腾讯云账号](https://cloud.tencent.com/)（微信扫码即可）
-- 项目已推送到 GitHub（你的仓库：`luoqianye/One-Thousand-and-One-Nights`）
+- 项目已推送到 GitHub（你的仓库：`luoqianye/Thousand-Pages-Memory`）
 - 在 [DeepSeek 开放平台](https://platform.deepseek.com/) 申请 API Key（`sk-...` 开头）
 
 ### 2. 创建 EdgeOne Pages 项目
 1. 打开 [EdgeOne Pages 控制台](https://console.cloud.tencent.com/edgeone/pages)
 2. 点击 **创建项目** → 选择 **从 GitHub 导入仓库**
-3. 授权 GitHub，选择 `One-Thousand-and-One-Nights` 仓库
+3. 授权 GitHub，选择 `Thousand-Pages-Memory` 仓库
 4. **构建配置**：
    - 框架预设：无（纯静态）
    - 构建命令：留空
