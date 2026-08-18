@@ -287,11 +287,14 @@
     .btn-secondary { background: #eef2f7; color: #333; }
     .status-line { font-size: 12px; color: #888; min-height: 18px; margin-top: 4px; }
 
-    /* 角色卡片列表 */
+    /* 角色/配置卡片：纵向布局，按钮整行放底部 */
     .char-card {
       background: #fff; border-radius: 16px; padding: 14px 16px;
-      display: flex; align-items: center; gap: 12px;
+      display: flex; flex-direction: column; gap: 12px;
       box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+    }
+    .char-main {
+      display: flex; align-items: center; gap: 12px; min-width: 0;
     }
     .char-avatar {
       width: 48px; height: 48px; border-radius: 50%; background: #eef4ff;
@@ -301,13 +304,17 @@
     .char-name { font-size: 15px; font-weight: 600; color: #333; display: flex; align-items: center; gap: 6px; }
     .char-current {
       font-size: 10px; background: #07c160; color: #fff;
-      border-radius: 999px; padding: 2px 8px; font-weight: 400;
+      border-radius: 999px; padding: 2px 8px; font-weight: 400; flex-shrink: 0;
     }
     .char-meta { font-size: 11px; color: #999; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .char-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .char-actions {
+      display: flex; gap: 8px; width: 100%;
+      border-top: 1px solid #f0f0f0; padding-top: 10px;
+    }
     .char-btn {
-      border: none; background: #f1f3f5; border-radius: 8px;
-      padding: 6px 10px; font-size: 12px; cursor: pointer; color: #333;
+      flex: 1; border: none; background: #f1f3f5; border-radius: 10px;
+      padding: 9px 0; font-size: 13px; cursor: pointer; color: #333;
+      text-align: center;
     }
 
     /* 角色编辑 modal */
@@ -681,10 +688,12 @@
         const card = document.createElement('div');
         card.className = 'char-card';
         card.innerHTML = `
-          <div class="char-avatar" style="background:#e8f9ef">🔌</div>
-          <div class="char-info">
-            <div class="char-name">${p.name} ${isCurrent ? '<span class="char-current">使用中</span>' : ''}</div>
-            <div class="char-meta">${p.baseUrl} · ${p.model || '未选模型'}</div>
+          <div class="char-main">
+            <div class="char-avatar" style="background:#e8f9ef">🔌</div>
+            <div class="char-info">
+              <div class="char-name">${p.name} ${isCurrent ? '<span class="char-current">使用中</span>' : ''}</div>
+              <div class="char-meta">${p.baseUrl} · ${p.model || '未选模型'}</div>
+            </div>
           </div>
           <div class="char-actions">
             <button class="char-btn" onclick="openProfileEditor('${p.id}')">编辑</button>
@@ -876,12 +885,14 @@
           actions += `<button class="char-btn" style="background:#07c160;color:#fff" onclick="setCurrentChar('${c.id}')">使用</button>`;
         }
         card.innerHTML = `
-          ${avatarHtml(c.avatar, 'char-avatar')}
-          <div class="char-info">
-            <div class="char-name">${c.name} ${isCurrent ? '<span class="char-current">使用中</span>' : ''}</div>
-            <div class="char-meta">${c.gender} · ${settingPreview}</div>
+          <div class="char-main">
+            ${avatarHtml(c.avatar, 'char-avatar')}
+            <div class="char-info">
+              <div class="char-name">${c.name} ${isCurrent ? '<span class="char-current">使用中</span>' : ''}</div>
+              <div class="char-meta">${c.gender} · ${settingPreview}</div>
+            </div>
           </div>
-          <div class="char-actions">${actions}</div>`;
+          ${actions ? `<div class="char-actions">${actions}</div>` : ''}`;
         list.appendChild(card);
       }
     }
