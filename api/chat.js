@@ -4,12 +4,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: '只支持 POST 请求' });
   }
 
-  const { messages } = req.body;
-  const apiKey = process.env.OPENAI_API_KEY;
-  const baseUrl = (process.env.API_BASE_URL || 'https://api.deepseek.com/v1').replace(/\/+$/, '');
+  const body = req.body || {};
+  const { messages } = body;
+  // 前端"设置"里填的 baseUrl/apiKey/model 优先，其次用环境变量兜底
+  const apiKey = body.apiKey || process.env.OPENAI_API_KEY;
+  const baseUrl = (body.baseUrl || process.env.API_BASE_URL || 'https://api.deepseek.com/v1').replace(/\/+$/, '');
   // 模型名做成可配置：默认 deepseek-chat（DeepSeek 官方对话模型名）
   // 注意：deepseek-v4-flash 不是 DeepSeek 官方模型名，调用官方 API 会 400 报错
-  const model = process.env.MODEL || 'deepseek-chat';
+  const model = body.model || process.env.MODEL || 'deepseek-chat';
 
   if (!apiKey) {
     return res.status(500).json({ error: 'API Key 未配置，请在 Vercel 环境变量中设置 OPENAI_API_KEY' });

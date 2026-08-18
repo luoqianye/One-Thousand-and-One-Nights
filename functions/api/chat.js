@@ -14,27 +14,28 @@
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const apiKey = env.OPENAI_API_KEY;
-  const baseUrl = (env.API_BASE_URL || 'https://api.deepseek.com/v1').replace(/\/+$/, '');
-  const model = env.MODEL || 'deepseek-chat';
-
-  if (!apiKey) {
-    return new Response(
-      JSON.stringify({ error: 'API Key 未配置，请在 EdgeOne Pages 环境变量中设置 OPENAI_API_KEY' }),
-      { status: 500, headers: { 'Content-Type': 'application/json; charset=utf-8' } }
-    );
-  }
-
-  // 解析请求体
+  // 解析请求体（前端"设置"里填的 baseUrl/apiKey/model 优先，其次用环境变量兜底）
   let messages;
+  let body = {};
   try {
-    const body = await request.json();
+    body = await request.json();
     messages = body.messages;
     if (!Array.isArray(messages)) throw new Error('messages 不是数组');
   } catch (e) {
     return new Response(
       JSON.stringify({ error: '请求体格式错误: ' + e.message }),
       { status: 400, headers: { 'Content-Type': 'application/json; charset=utf-8' } }
+    );
+  }
+
+  const apiKey = body.apiKey || env.OPENAI_API_KEY;
+  const baseUrl = (body.baseUrl || env.API_BASE_URL || 'https://api.deepseek.com/v1').replace(/\/+$/, '');
+  const model = body.model || env.MODEL || 'deepseek-chat';
+
+  if (!apiKey) {
+    return new Response(
+      JSON.stringify({ error: 'API Key 未配置，请在设置中填写，或在平台环境变量中设置 OPENAI_API_KEY' }),
+      { status: 500, headers: { 'Content-Type': 'application/json; charset=utf-8' } }
     );
   }
 
