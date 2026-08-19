@@ -17,8 +17,18 @@ export async function onRequestPost(context) {
     );
   }
 
-  const apiKey = body.apiKey || env.OPENAI_API_KEY;
-  const baseUrl = (body.baseUrl || env.API_BASE_URL || 'https://api.deepseek.com/v1').replace(/\/+$/, '');
+  const clientApiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : '';
+  const clientBaseUrl = typeof body.baseUrl === 'string' ? body.baseUrl.trim() : '';
+  if (clientBaseUrl && !clientApiKey) {
+    return new Response(JSON.stringify({ error: '使用自定义 Base URL 时必须同时提供对应的 API Key' }), { status: 400, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
+  }
+  const apiKey = clientApiKey || env.OPENAI_API_KEY;
+  const baseUrl = (clientBaseUrl || env.API_BASE_URL || 'https://api.deepseek.com/v1').replace(/\/+$/, '');
+  try {
+    assertSafeBaseUrl(baseUrl);
+  } catch (e) {
+    return new Response(JSON.stringify({ error: e.message }), { status: 400, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
+  }
 
   if (!apiKey) {
     return new Response(
@@ -55,4 +65,15 @@ export async function onRequestPost(context) {
       { status: 500, headers: { 'Content-Type': 'application/json; charset=utf-8' } }
     );
   }
+}
+
+function assertSafeBaseUrl(value) {
+  const url = new URL(value);
+  const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  if (url.protocol !== 'https:') throw new Error('Base URL 必须使用 HTTPS');
+  if (url.username || url.password) throw new Error('Base URL 不能包含用户名或密码');
+  if (host === 'localhost' || host.endsWith('.localhost') || host === '::1' || host === '0.0.0.0') throw new Error('Base URL 不能指向本机地址');
+  if (/^(?:10|127)\./.test(host) || /^192\.168\./.test(host) || /^169\.254\./.test(host)) throw new Error('Base URL 不能指向内网地址');
+  const match172 = host.match(/^172\.(\d+)\./);
+  if (match172 && Number(match172[1]) >= 16 && Number(match172[1]) <= 31) throw new Error('Base URL 不能指向内网地址');
 }

@@ -242,6 +242,7 @@
     .page-header .title {
       font-size: 20px; font-weight: 700; color: #333; line-height: 1.2;
     }
+    .page-title-icon { margin-right: 6px; }
     .page-header .header-action { align-self: flex-start; }
     .sub-body { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 
@@ -353,6 +354,103 @@
     .modal-btns button:first-child { background: #07c160; color: #fff; }
     .modal-btns button:last-child { background: #eee; color: #333; }
 
+    /* 手机端二级页：参考侧栏标题 + 内容卡片的杂志式布局 */
+    @media (max-width: 767px) {
+      #settingsView.active,
+      #charactersView.active {
+        display: grid;
+        grid-template-columns: minmax(108px, 29%) minmax(0, 1fr);
+        background: #f2f6ff;
+      }
+
+      #settingsView .page-header,
+      #charactersView .page-header {
+        height: 100%; min-width: 0;
+        padding: max(22px, env(safe-area-inset-top)) 14px 24px;
+        background: #f3f3f3;
+        border: 0; border-right: 1px solid rgba(70, 82, 105, 0.07);
+        box-shadow: 8px 0 22px rgba(46, 67, 105, 0.035);
+        gap: 0;
+      }
+
+      #settingsView .page-header .back-btn,
+      #charactersView .page-header .back-btn {
+        width: 54px; height: 46px; margin: 0 0 46px -7px; padding: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 34px; font-weight: 300; color: #363636;
+      }
+
+      #settingsView .page-header .title,
+      #charactersView .page-header .title {
+        display: flex; flex-direction: column; align-items: flex-start; gap: 9px;
+        width: 100%; font-size: clamp(23px, 7vw, 32px); line-height: 1.08;
+        letter-spacing: -1px; color: #292929; white-space: normal;
+      }
+
+      #settingsView .page-title-icon,
+      #charactersView .page-title-icon {
+        display: block; margin-right: 0; font-size: clamp(32px, 10vw, 46px); line-height: 1;
+      }
+
+      #settingsView .header-action,
+      #charactersView .header-action {
+        width: 100%; margin-top: 24px; padding: 10px 8px;
+        border-radius: 14px; font-size: 13px;
+      }
+
+      #settingsView .sub-body,
+      #charactersView .sub-body {
+        min-width: 0; height: 100%; padding: max(28px, env(safe-area-inset-top)) 16px 28px;
+        gap: 16px; background: #f2f6ff;
+      }
+
+      #settingsView .set-item,
+      #charactersView .char-card {
+        border-radius: 24px; padding: 18px;
+        box-shadow: 0 12px 30px rgba(56, 77, 115, 0.09);
+      }
+
+      #settingsView .set-item { gap: 14px; min-height: 106px; }
+      #settingsView .set-icon {
+        width: 64px; height: 64px; border-radius: 20px; font-size: 30px;
+      }
+      #settingsView .set-name { font-size: 20px; font-weight: 700; }
+      #settingsView .set-sub {
+        max-width: 150px; margin-top: 5px; font-size: 13px; line-height: 1.35;
+        overflow-wrap: anywhere;
+      }
+      #settingsView .set-arrow { font-size: 32px; font-weight: 300; }
+
+      #charactersView #charList { gap: 16px !important; }
+      #charactersView .char-card { gap: 14px; }
+      #charactersView .char-main { align-items: center; gap: 14px; }
+      #charactersView .char-avatar {
+        width: 68px; height: 68px; border-radius: 20px; font-size: 34px;
+      }
+      #charactersView .char-name {
+        flex-wrap: wrap; font-size: 18px; line-height: 1.25;
+      }
+      #charactersView .char-meta {
+        margin-top: 6px; font-size: 12px; line-height: 1.4;
+        white-space: normal; display: -webkit-box; -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+      #charactersView .char-actions { gap: 7px; padding-top: 12px; }
+      #charactersView .char-btn { min-width: 0; padding: 10px 4px; font-size: 12px; }
+    }
+
+    @media (max-width: 380px) {
+      #settingsView.active,
+      #charactersView.active { grid-template-columns: 102px minmax(0, 1fr); }
+      #settingsView .sub-body,
+      #charactersView .sub-body { padding-left: 12px; padding-right: 12px; }
+      #settingsView .set-item,
+      #charactersView .char-card { padding: 14px; border-radius: 20px; }
+      #settingsView .set-icon { width: 54px; height: 54px; font-size: 25px; }
+      #settingsView .set-name { font-size: 17px; }
+      #charactersView .char-avatar { width: 58px; height: 58px; }
+    }
+
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   </style>
 </head>
@@ -451,7 +549,7 @@
     <section id="settingsView" class="view">
       <div class="page-header">
         <button class="back-btn" onclick="goBack()" title="返回上一页">←</button>
-        <span class="title">⚙️ 设置</span>
+        <span class="title"><span class="page-title-icon">⚙️</span><span>设置</span></span>
       </div>
       <div class="sub-body">
         <button class="set-item" onclick="openApiConfig()">
@@ -478,7 +576,7 @@
           <div class="form-label" style="margin-top:0">💡 说明</div>
           <div style="font-size:12px;color:#999;line-height:1.8">
             可添加多个 API 配置（不同提供商），聊天时在输入框上方选择使用的模型。<br>
-            API Key 仅保存在你自己的浏览器（localStorage）中，不会上传到任何服务器。
+            API Key 会保存在你自己的浏览器（localStorage）中；调用模型时会经本站代理转发，但不会在本站服务器持久化。
           </div>
         </div>
       </div>
@@ -488,7 +586,7 @@
     <section id="charactersView" class="view">
       <div class="page-header">
         <button class="back-btn" onclick="goBack()" title="返回上一页">←</button>
-        <span class="title">📜 角色档案</span>
+        <span class="title"><span class="page-title-icon">📜</span><span>角色档案</span></span>
         <button class="btn btn-primary header-action" onclick="openCharEditor()">+ 新建</button>
       </div>
       <div class="sub-body">
@@ -564,28 +662,51 @@
     const userInput = document.getElementById('userInput');
 
     // ================= 视图切换（支持浏览器/手机返回键） =================
-    let viewHistory = []; // 视图访问栈，配合 history.pushState 实现返回
+    let currentViewId = 'homeView';
+    const viewParents = {
+      chatView: 'homeView',
+      settingsView: 'homeView',
+      apiConfigView: 'settingsView',
+      charactersView: 'homeView'
+    };
 
     function showView(id) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
+      const view = document.getElementById(id) || document.getElementById('homeView');
+      view.classList.add('active');
+      currentViewId = view.id;
     }
     function pushView(id) {
-      viewHistory.push(id);
       showView(id);
       history.pushState({ v: id }, '');
     }
-    // 统一返回：页面返回键 / 浏览器后退 / 手机返回键都走这里
+    // 页面里的返回按钮：弹窗优先关闭，否则退到当前页面的上一级。
     function goBack() {
       closeMessageMenu();
-      if (viewHistory.length > 0) history.back();
-      else showView('homeView');
+      const charModal = document.getElementById('charModal');
+      const configModal = document.getElementById('configModal');
+      if (charModal?.style.display !== 'none') { closeCharEditor(); return; }
+      if (configModal?.style.display !== 'none') { closeProfileEditor(); return; }
+      if (currentViewId === 'homeView') return;
+      history.back();
     }
-    // 浏览器/手机返回键触发
-    window.addEventListener('popstate', () => {
-      viewHistory.pop();
-      showView(viewHistory[viewHistory.length - 1] || 'homeView');
+
+    // 浏览器/手机返回键：优先采用历史记录中的页面；没有记录时按父级关系回退。
+    window.addEventListener('popstate', (event) => {
+      const charModal = document.getElementById('charModal');
+      const configModal = document.getElementById('configModal');
+      if (charModal?.style.display !== 'none' || configModal?.style.display !== 'none') {
+        if (charModal?.style.display !== 'none') closeCharEditor();
+        if (configModal?.style.display !== 'none') closeProfileEditor();
+        history.pushState({ v: currentViewId }, '');
+        return;
+      }
+      const target = event.state?.v || viewParents[currentViewId] || 'homeView';
+      showView(target);
     });
+
+    // 给初始页面建立明确状态，确保第一层和第二层返回行为一致。
+    history.replaceState({ v: 'homeView' }, '');
 
     function openChat() { pushView('chatView'); }
     function openSettings() { pushView('settingsView'); updateApiStatusText(); }
@@ -617,6 +738,23 @@
       t.classList.add('show');
       clearTimeout(t._timer);
       t._timer = setTimeout(() => t.classList.remove('show'), 1600);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[ch]);
+    }
+
+    function safeImageSource(value) {
+      const source = String(value || '').trim();
+      if (/^data:image\/(?:png|jpe?g|gif|webp);base64,/i.test(source)) return source;
+      try {
+        const url = new URL(source);
+        return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : '';
+      } catch (e) {
+        return '';
+      }
     }
 
     // ================= 设置管理（多 API 配置） =================
@@ -675,7 +813,6 @@
     }
 
     // ---- API 配置列表 ----
-    function openApiConfig() { showView('apiConfigView'); renderProfiles(); }
     function renderProfiles() {
       const list = document.getElementById('profileList');
       list.innerHTML = '';
@@ -691,8 +828,8 @@
           <div class="char-main">
             <div class="char-avatar" style="background:#e8f9ef">🔌</div>
             <div class="char-info">
-              <div class="char-name">${p.name} ${isCurrent ? '<span class="char-current">使用中</span>' : ''}</div>
-              <div class="char-meta">${p.baseUrl} · ${p.model || '未选模型'}</div>
+              <div class="char-name">${escapeHtml(p.name)} ${isCurrent ? '<span class="char-current">使用中</span>' : ''}</div>
+              <div class="char-meta">${escapeHtml(p.baseUrl)} · ${escapeHtml(p.model || '未选模型')}</div>
             </div>
           </div>
           <div class="char-actions">
@@ -715,9 +852,10 @@
       document.getElementById('cfgApiKey').value = p.apiKey || '';
       const sel = document.getElementById('cfgModel');
       sel.innerHTML = p.models && p.models.length
-        ? p.models.map(m => `<option value="${m}">${m}</option>`).join('')
+        ? p.models.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('')
         : '<option value="">（先拉取模型）</option>';
-      if (p.model && p.models.includes(p.model)) sel.value = p.model;
+      sel._models = Array.isArray(p.models) ? [...p.models] : [];
+      if (p.model && Array.isArray(p.models) && p.models.includes(p.model)) sel.value = p.model;
       document.getElementById('apiCfgStatus').textContent = '';
       document.getElementById('configModal').style.display = 'flex';
     }
@@ -741,8 +879,9 @@
         const models = (data.data || []).map(m => m.id).filter(Boolean);
         const sel = document.getElementById('cfgModel');
         sel.innerHTML = models.length
-          ? models.map(id => `<option value="${id}">${id}</option>`).join('')
+          ? models.map(id => `<option value="${escapeHtml(id)}">${escapeHtml(id)}</option>`).join('')
           : '<option value="">（无可用模型）</option>';
+        sel._models = models;
         setCfgStatus(`✅ 拉取成功，发现 ${models.length} 个模型`);
         return models;
       } catch (e) {
@@ -780,7 +919,9 @@
       const model = document.getElementById('cfgModel').value;
       if (!name) { showToast('请填写配置名称'); return; }
       if (!baseUrl) { showToast('请填写 Base URL'); return; }
-      const data = { name, baseUrl, apiKey, model };
+      const modelSelect = document.getElementById('cfgModel');
+      const models = Array.isArray(modelSelect._models) ? modelSelect._models : [];
+      const data = { name, baseUrl, apiKey, model, models };
       if (editingProfileId) {
         const p = settings.profiles.find(x => x.id === editingProfileId);
         if (p) { Object.assign(p, data); showToast('配置已更新'); }
@@ -826,7 +967,7 @@
         sel.innerHTML = '<option value="">（请先在设置中配置 API）</option>';
         return;
       }
-      sel.innerHTML = options.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+      sel.innerHTML = options.map(o => `<option value="${escapeHtml(o.value)}">${escapeHtml(o.label)}</option>`).join('');
       const cur = getCurrentProfile();
       const curVal = cur ? cur.id + '||' + (cur.model || '') : '';
       if (curVal && options.some(o => o.value === curVal)) sel.value = curVal;
@@ -888,8 +1029,8 @@
           <div class="char-main">
             ${avatarHtml(c.avatar, 'char-avatar')}
             <div class="char-info">
-              <div class="char-name">${c.name} ${isCurrent ? '<span class="char-current">使用中</span>' : ''}</div>
-              <div class="char-meta">${c.gender} · ${settingPreview}</div>
+              <div class="char-name">${escapeHtml(c.name)} ${isCurrent ? '<span class="char-current">使用中</span>' : ''}</div>
+              <div class="char-meta">${escapeHtml(c.gender)} · ${escapeHtml(settingPreview)}</div>
             </div>
           </div>
           ${actions ? `<div class="char-actions">${actions}</div>` : ''}`;
@@ -926,7 +1067,14 @@
     // 头像三种来源：emoji / 本地上传 / 图床 URL
     function updateAvatarPreview() {
       const pv = document.getElementById('charAvatarPreview');
-      if (avatarState === 'custom' && avatarData) pv.innerHTML = `<img src="${avatarData}" alt="">`;
+      const source = safeImageSource(avatarData);
+      if (avatarState === 'custom' && source) {
+        pv.textContent = '';
+        const img = document.createElement('img');
+        img.src = source;
+        img.alt = '';
+        pv.appendChild(img);
+      }
       else pv.textContent = avatarData || '🐳';
     }
     function toggleEmojiPicker() {
@@ -984,10 +1132,11 @@
     }
     // 渲染头像（emoji 文本 或 图片）
     function avatarHtml(avatar, cls) {
-      if (avatar && (avatar.startsWith('data:') || avatar.startsWith('http'))) {
-        return `<div class="${cls}" style="overflow:hidden"><img src="${avatar}" alt=""></div>`;
+      const source = safeImageSource(avatar);
+      if (source) {
+        return `<div class="${cls}" style="overflow:hidden"><img src="${escapeHtml(source)}" alt=""></div>`;
       }
-      return `<div class="${cls}">${avatar || '🐳'}</div>`;
+      return `<div class="${cls}">${escapeHtml(avatar || '🐳')}</div>`;
     }
 
     function renderEmojiGrid(selected) {
@@ -1049,9 +1198,12 @@
     function setCurrentChar(id) {
       currentCharId = id;
       localStorage.setItem('tpm_current_char', id);
-      resetConversation();
+      initConversation();
+      if (!loadMessages()) renderAll();
+      updateChatHeader();
+      updateChatCard();
       renderCharacters();
-      showToast(`已切换到「${getChar(id).name}」，开始新的对话`);
+      showToast(`已切换到「${getChar(id).name}」`);
     }
 
     // ================= 聊天逻辑 =================
@@ -1077,7 +1229,7 @@
     // 切换角色：重置对话（system prompt 已变，旧历史不再适用）
     function resetConversation() {
       initConversation();
-      localStorage.removeItem('oc_chat_history');
+      localStorage.removeItem(chatHistoryKey());
       renderAll();
       updateChatHeader();
       updateChatCard();
@@ -1092,8 +1244,14 @@
       const desc = document.querySelector('#chatView .sidebar .oc-desc');
       if (avatar) {
         const av = c.avatar || '🐳';
-        if (av.startsWith('data:') || av.startsWith('http')) avatar.innerHTML = `<img src="${av}" alt="">`;
-        else avatar.textContent = av;
+        const source = safeImageSource(av);
+        avatar.textContent = '';
+        if (source) {
+          const img = document.createElement('img');
+          img.src = source;
+          img.alt = '';
+          avatar.appendChild(img);
+        } else avatar.textContent = av;
       }
       if (name) name.textContent = c.name;
       if (desc) desc.textContent = c.setting || '';
@@ -1106,15 +1264,23 @@
     }
 
     // --- 保存对话到本地存储 ---
+function chatHistoryKey() {
+  return `tpm_chat_history_${currentCharId}`;
+}
+
 function saveMessages() {
   // 过滤掉系统消息（system prompt），只保存用户和助手的对话
   const toSave = messages.filter(m => m.role === 'user' || m.role === 'assistant');
-  localStorage.setItem('oc_chat_history', JSON.stringify(toSave));
+  localStorage.setItem(chatHistoryKey(), JSON.stringify(toSave));
 }
 
 // --- 从本地存储加载对话 ---
 function loadMessages() {
-  const saved = localStorage.getItem('oc_chat_history');
+  let saved = localStorage.getItem(chatHistoryKey());
+  if (!saved && currentCharId === 'default') {
+    saved = localStorage.getItem('oc_chat_history');
+    if (saved) localStorage.setItem(chatHistoryKey(), saved);
+  }
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
@@ -1395,26 +1561,38 @@ function loadMessages() {
           body: JSON.stringify({
             messages,
             // 前端"设置"里的配置优先，未填则由后端环境变量兜底
-            baseUrl: profile?.baseUrl || undefined,
+            baseUrl: profile?.apiKey ? profile.baseUrl : undefined,
             apiKey: profile?.apiKey || undefined,
             model: profile?.model || undefined
           })
         });
 
-        if (!response.ok) throw new Error('请求失败');
+        if (!response.ok) {
+          const errorText = await response.text();
+          let message = `请求失败（HTTP ${response.status}）`;
+          try {
+            const parsed = JSON.parse(errorText);
+            message = parsed.error?.message || parsed.error || message;
+          } catch (e) {
+            if (errorText.trim()) message = errorText.trim().slice(0, 300);
+          }
+          throw new Error(message);
+        }
 
         // 处理流式输出
+        if (!response.body) throw new Error('服务器没有返回可读取的数据流');
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         typingBubble.textContent = '';
         let done = false;
+        let buffer = '';
 
         while (!done) {
           const { value, done: streamDone } = await reader.read();
           done = streamDone;
-          const chunk = decoder.decode(value, { stream: !done });
-          // 简单解析 SSE 数据行
-          const lines = chunk.split('\n');
+          buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+          const lines = buffer.split(/\r?\n/);
+          buffer = done ? '' : lines.pop();
           for (const line of lines) {
             if (line.startsWith('data: ')) {
               const data = line.substring(6);
@@ -1430,12 +1608,13 @@ function loadMessages() {
         }
 
         // 记录完整的 AI 回复
-        const fullReply = typingBubble.textContent;
+        const fullReply = typingBubble.textContent.trim();
+        if (!fullReply) throw new Error('模型返回了空回复');
         messages.push({ role: "assistant", content: fullReply });
         saveMessages(); // 保存到本地存储
         renderAll();
       } catch (err) {
-        typingBubble.textContent = '出了点问题，晚点再试试吧...';
+        typingBubble.textContent = `出了点问题：${err.message}`;
         console.error(err);
       } finally {
         isGenerating = false;
