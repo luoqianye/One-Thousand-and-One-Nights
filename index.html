@@ -98,7 +98,7 @@
     .f-story    { background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); }
     .f-genie    { background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%); }
     .f-map      { background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); }
-    .f-music    { background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%); }
+    .f-memoir   { background: linear-gradient(135deg, #a16207 0%, #713f12 100%); }
     .f-chara    { background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%); }
     .f-vault    { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
     .f-settings { background: linear-gradient(135deg, #64748b 0%, #475569 100%); }
@@ -201,6 +201,7 @@
       padding: 4px 10px; border-radius: 10px; line-height: 1; flex-shrink: 0;
       margin-left: -6px;
     }
+    .header .back-btn { position: relative; z-index: 1; }
     .back-btn:active { background: rgba(0,0,0,0.08); }
 
     /* 聊天模型选择条 */
@@ -489,6 +490,215 @@
       #charactersView .char-avatar { width: 58px; height: 58px; }
     }
 
+    /* ============ 动态（便签墙/便签流） ============ */
+    .filter-strip {
+      display: flex; gap: 8px; overflow-x: auto;
+      padding: 12px 16px 4px; flex-shrink: 0;
+    }
+    .filter-strip::-webkit-scrollbar { display: none; }
+    .filter-chip {
+      flex-shrink: 0; border: none; cursor: pointer; font-family: inherit;
+      background: #fff; color: #555; border-radius: 999px;
+      padding: 7px 14px; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .filter-chip.active { background: #07c160; color: #fff; }
+    .filter-chip .chip-avatar {
+      width: 20px; height: 20px; border-radius: 50%; background: #eef4ff;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+      font-size: 12px; flex-shrink: 0;
+    }
+    .filter-chip .chip-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .moments-body {
+      flex: 1; overflow-y: auto;
+      background: #f0f4fa; padding: 18px 16px 28px;
+    }
+    /* 桌面：便签墙 */
+    .moments-wall {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 20px; align-items: start;
+    }
+    .moment-note {
+      background: #fffdf4; border-radius: 8px; padding: 16px 16px 12px;
+      box-shadow: 0 2px 10px rgba(56, 77, 115, 0.10);
+      position: relative; cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      word-break: break-word;
+    }
+    .moment-note.wide { grid-column: span 2; }
+    .moment-note.rot-l { transform: rotate(-1.6deg); }
+    .moment-note.rot-r { transform: rotate(1.6deg); }
+    .moment-note .note-tape {
+      position: absolute; top: -9px; left: 50%; transform: translateX(-50%);
+      width: 56px; height: 18px; background: rgba(255, 214, 130, 0.55);
+      border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    @media (hover: hover) {
+      .moment-note:hover {
+        transform: rotate(0deg) translateY(-4px);
+        box-shadow: 0 10px 26px rgba(56, 77, 115, 0.18);
+        z-index: 2;
+      }
+    }
+    .moment-note .note-text { font-size: 14px; line-height: 1.65; color: #3d3d3d; }
+    .moment-note .note-imgs { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .moment-note .note-imgs img {
+      width: 74px; height: 74px; object-fit: cover; border-radius: 6px;
+    }
+    .moment-note .note-meta {
+      margin-top: 10px; padding-top: 8px; border-top: 1px dashed #e6ddc8;
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 11px; color: #a89f8a;
+    }
+    .moment-note .note-author { display: flex; align-items: center; gap: 5px; }
+    .moment-note .note-author .na-avatar {
+      width: 18px; height: 18px; border-radius: 50%; background: #eef4ff;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+      font-size: 11px;
+    }
+    .moment-note .note-author .na-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .moments-empty {
+      text-align: center; color: #999; font-size: 13px; padding: 60px 20px;
+    }
+    /* 手机：纵向交错便签流（强制单列，禁止多列压缩） */
+    @media (max-width: 767px) {
+      .moments-body { overflow-x: hidden; }
+      .moments-wall {
+        display: flex; flex-direction: column; gap: 16px;
+        width: 100%; grid-template-columns: none;
+      }
+      .moment-note { width: 100%; max-width: 100%; min-width: 0; }
+      .moment-note.wide { width: 100%; grid-column: auto; }
+      .moment-note:nth-child(even) { transform: translateX(6px) rotate(0.6deg); }
+      .moment-note:nth-child(odd)  { transform: translateX(-4px) rotate(-0.6deg); }
+      .moment-note:hover { transform: translateX(0) rotate(0); }
+    }
+
+    /* ============ 回忆录（书架 + 阅读器） ============ */
+    .shelf-body {
+      flex: 1; overflow-y: auto; padding: 16px 16px 28px; background: #f0f4fa;
+      display: flex; flex-direction: column; gap: 22px;
+    }
+    .shelf-section { display: flex; flex-direction: column; gap: 10px; }
+    .shelf-head {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 700; color: #444;
+    }
+    .shelf-head .sh-avatar {
+      width: 26px; height: 26px; border-radius: 50%; background: #fff;
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+      font-size: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    .shelf-head .sh-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .shelf-row { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; }
+    .shelf-row::-webkit-scrollbar { display: none; }
+    .book-card {
+      flex-shrink: 0; width: 118px; border: none; cursor: pointer; font-family: inherit;
+      background: none; padding: 0; text-align: left;
+    }
+    .book-cover {
+      width: 118px; height: 158px; border-radius: 6px 12px 12px 6px;
+      background: linear-gradient(160deg, #7a5c3e 0%, #5d4327 100%);
+      color: #f3e9d6; display: flex; flex-direction: column;
+      justify-content: flex-end; padding: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.22);
+      overflow: hidden; position: relative;
+    }
+    .book-cover .bc-title {
+      font-size: 12px; font-weight: 700; line-height: 1.4;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .book-cover .bc-chapters { margin-top: 6px; font-size: 10px; opacity: 0.75; }
+    .book-card .bc-name { font-size: 12px; color: #555; margin-top: 8px; line-height: 1.4; }
+    .shelf-empty { text-align: center; color: #999; font-size: 13px; padding: 60px 20px; }
+
+    /* 阅读器 */
+    .reader-body {
+      flex: 1; overflow-y: auto; display: flex; align-items: flex-start;
+      justify-content: center; gap: 28px; padding: 28px 20px 20px;
+      background: #e9e2d3; flex-wrap: wrap;
+    }
+    .reader-page {
+      width: 44%; max-width: 380px; min-height: 60vh;
+      background: #fffdf5; border-radius: 4px; padding: 28px 24px;
+      box-shadow: 0 3px 14px rgba(0,0,0,0.16);
+      font-size: 15px; line-height: 1.9; color: #3d3d3d;
+      word-break: break-word;
+    }
+    .reader-page .rp-chapter {
+      font-size: 12px; color: #a89f8a; margin-bottom: 14px;
+      border-bottom: 1px solid #eee4cf; padding-bottom: 8px;
+    }
+    .reader-page .rp-img { max-width: 100%; border-radius: 6px; margin: 10px 0; }
+    .reader-nav {
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+      padding: 10px 16px; background: #f4efe4; border-top: 1px solid #e3d9c2;
+      flex-shrink: 0;
+    }
+    .reader-nav button {
+      border: none; background: #fff; border-radius: 999px; padding: 8px 18px;
+      font-size: 13px; cursor: pointer; color: #555; box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .reader-nav button:disabled { opacity: 0.35; cursor: default; }
+    .reader-nav .rn-info { font-size: 12px; color: #8a8171; }
+    @media (max-width: 767px) {
+      .reader-body { padding: 16px 10px; gap: 12px; }
+      .reader-page { width: 96%; max-width: 420px; min-height: 62vh; padding: 22px 18px; }
+    }
+
+    /* ============ 对话功能区（角色列表 / 动态 / 其他） ============ */
+    /* 对话相关页面使用独立近全视口工作区，不继承首页的中央卡片外壳。 */
+    body.workspace-mode {
+      padding: 0; align-items: stretch;
+    }
+    body.workspace-mode .app {
+      max-width: none; width: 100vw; height: 100vh; height: 100dvh;
+      border-radius: 0; box-shadow: none;
+    }
+
+    #chatView, #momentsView { flex-direction: column; background: #f0f4fa; }
+    /* 子导航：手机端在底部，桌面端在顶部 */
+    .chat-subnav {
+      display: flex; gap: 6px; padding: 8px 12px;
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+      background: #fff; border-top: 1px solid #e8e8e8;
+      order: 2; flex-shrink: 0;
+    }
+    .subnav-item {
+      flex: 1; border: none; cursor: pointer; font-family: inherit;
+      background: #f1f3f5; border-radius: 10px; padding: 9px 0;
+      font-size: 13px; color: #555;
+    }
+    .subnav-item.active { background: #07c160; color: #fff; }
+    .chat-sub {
+      flex: 1; min-height: 0; display: none; flex-direction: column; order: 1;
+    }
+    .chat-sub.active { display: flex; }
+    .sub-head {
+      padding: 14px 16px 6px; font-size: 18px; font-weight: 700; color: #333;
+      display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+    }
+    .rolelist-body {
+      flex: 1; overflow-y: auto; padding: 10px 16px 20px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .rolelist-body .role-card { cursor: pointer; transition: box-shadow 0.15s; }
+    .rolelist-body .role-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.10); }
+    @media (min-width: 768px) {
+      .chat-subnav {
+        order: 0; border-top: none; border-bottom: 1px solid #e8e8e8;
+        justify-content: center; gap: 8px; padding: 10px 16px;
+      }
+      .subnav-item { flex: none; padding: 8px 22px; }
+      .rolelist-body {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 12px; align-content: start;
+      }
+    }
+
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   </style>
 </head>
@@ -533,11 +743,11 @@
             <span class="fun-desc">探索千页忆境的世界</span>
           </span>
         </button>
-        <button class="fun-card f5 f-music" onclick="showToast('「音乐盒」开发中，敬请期待~')">
-          <span class="fun-icon">🎵</span>
+        <button class="fun-card f5 f-memoir" onclick="openMemoir()">
+          <span class="fun-icon">📚</span>
           <span>
-            <span class="fun-name">音乐盒</span>
-            <span class="fun-desc">收集夜的旋律</span>
+            <span class="fun-name">回忆录</span>
+            <span class="fun-desc">翻阅与角色写下的故事</span>
           </span>
         </button>
         <button class="fun-card narrow f6 f-chara" onclick="openCharacters()">
@@ -558,8 +768,46 @@
       </div>
     </main>
 
-    <!-- ================= 对话聊天视图 ================= -->
-    <section id="chatView" class="view">
+    <!-- ================= 对话聊天功能区（角色列表 / 动态 / 其他） ================= -->
+    <section id="chatView" class="view workspace-view">
+      <div class="header">
+        <button class="back-btn" onclick="goBack()" title="返回首页">←</button>
+        <span>对话聊天</span>
+      </div>
+      <nav class="chat-subnav">
+        <button class="subnav-item active" data-sub="rolelist" onclick="switchChatSub('rolelist')">👤 角色列表</button>
+        <button class="subnav-item" onclick="openMoments()">📝 动态</button>
+        <button class="subnav-item" data-sub="other" onclick="switchChatSub('other')">⋯ 其他</button>
+      </nav>
+      <div class="chat-sub active" id="subRolelist">
+        <div class="sub-head">👤 角色列表</div>
+        <div class="rolelist-body" id="roleListBody"></div>
+      </div>
+      <div class="chat-sub" id="subOther">
+        <div class="sub-head">⋯ 其他</div>
+        <div class="moments-empty">更多功能正在路上~</div>
+      </div>
+    </section>
+
+    <!-- ================= 独立动态工作区 ================= -->
+    <section id="momentsView" class="view workspace-view">
+      <div class="header">
+        <button class="back-btn" onclick="returnToChatView()" title="返回对话聊天">←</button>
+        <span>动态</span>
+      </div>
+      <nav class="chat-subnav">
+        <button class="subnav-item" onclick="returnToChatSection('rolelist')">👤 角色列表</button>
+        <button class="subnav-item active" aria-current="page">📝 动态</button>
+        <button class="subnav-item" onclick="returnToChatSection('other')">⋯ 其他</button>
+      </nav>
+      <div class="filter-strip" id="momentFilter"></div>
+      <div class="moments-body">
+        <div class="moments-wall" id="momentsWall"></div>
+      </div>
+    </section>
+
+    <!-- ================= 聊天详情视图 ================= -->
+    <section id="chatDetailView" class="view workspace-view">
       <aside class="sidebar">
         <div class="sidebar-head">🐳 角色</div>
         <div class="side-char-list" id="sideCharList"></div>
@@ -628,6 +876,29 @@
       </div>
       <div class="sub-body">
         <div id="charList" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+    </section>
+
+    <!-- ================= 回忆录视图（书架） ================= -->
+    <section id="memoirView" class="view">
+      <div class="page-header">
+        <button class="back-btn" onclick="goBack()" title="返回上一页">←</button>
+        <span class="title"><span class="page-title-icon">📚</span><span>回忆录</span></span>
+      </div>
+      <div class="shelf-body" id="shelfBody"></div>
+    </section>
+
+    <!-- ================= 阅读器视图 ================= -->
+    <section id="bookView" class="view">
+      <div class="page-header">
+        <button class="back-btn" onclick="goBack()" title="返回上一页">←</button>
+        <span class="title" id="bookTitle">阅读</span>
+      </div>
+      <div class="reader-body" id="readerBody"></div>
+      <div class="reader-nav">
+        <button id="btnPrevPage" onclick="turnPage(-1)">← 上一页</button>
+        <span class="rn-info" id="pageInfo"></span>
+        <button id="btnNextPage" onclick="turnPage(1)">下一页 →</button>
       </div>
     </section>
 
@@ -700,11 +971,16 @@
 
     // ================= 视图切换（支持浏览器/手机返回键） =================
     let currentViewId = 'homeView';
+    let pendingChatSub = null;
     const viewParents = {
       chatView: 'homeView',
+      momentsView: 'chatView',
+      chatDetailView: 'chatView',
       settingsView: 'homeView',
       apiConfigView: 'settingsView',
-      charactersView: 'homeView'
+      charactersView: 'homeView',
+      memoirView: 'homeView',
+      bookView: 'memoirView'
     };
 
     function showView(id) {
@@ -712,6 +988,7 @@
       const view = document.getElementById(id) || document.getElementById('homeView');
       view.classList.add('active');
       currentViewId = view.id;
+      document.body.classList.toggle('workspace-mode', view.classList.contains('workspace-view'));
     }
     function pushView(id) {
       showView(id);
@@ -740,15 +1017,69 @@
       }
       const target = event.state?.v || viewParents[currentViewId] || 'homeView';
       showView(target);
+      if (target === 'chatView' && pendingChatSub) {
+        const sub = pendingChatSub;
+        pendingChatSub = null;
+        switchChatSub(sub);
+      }
     });
 
     // 给初始页面建立明确状态，确保第一层和第二层返回行为一致。
     history.replaceState({ v: 'homeView' }, '');
 
-    function openChat() { pushView('chatView'); renderSideCharList(); }
+    function openChat() { pushView('chatView'); switchChatSub('rolelist'); renderRoleList(); }
     function openSettings() { pushView('settingsView'); updateApiStatusText(); }
     function openApiConfig() { pushView('apiConfigView'); renderProfiles(); }
     function openCharacters() { pushView('charactersView'); renderCharacters(); }
+    function openMoments() { pushView('momentsView'); renderMoments(); }
+    // 动态页只允许返回对话功能区，不进入任何角色的聊天详情。
+    function returnToChatView() {
+      if (currentViewId !== 'momentsView') return;
+      pendingChatSub = 'rolelist';
+      history.back();
+    }
+    function returnToChatSection(name) {
+      if (currentViewId !== 'momentsView') return;
+      pendingChatSub = name;
+      history.back();
+    }
+    function openMemoir() { pushView('memoirView'); renderShelf(); }
+    function openBook(id) { currentBookId = id; currentPageIndex = 0; pushView('bookView'); renderBookReader(); }
+
+    // ---- 对话功能区子导航（角色列表 / 动态 / 其他） ----
+    let chatSub = 'rolelist';
+    function switchChatSub(name) {
+      chatSub = name;
+      document.querySelectorAll('#chatView .chat-sub').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById('sub' + name.charAt(0).toUpperCase() + name.slice(1));
+      if (target) target.classList.add('active');
+      document.querySelectorAll('#chatView .subnav-item').forEach(b => b.classList.toggle('active', b.dataset.sub === name));
+      if (name === 'rolelist') renderRoleList();
+    }
+    function renderRoleList() {
+      const body = document.getElementById('roleListBody');
+      if (!body) return;
+      const all = [DEFAULT_CHAR, ...characters];
+      body.innerHTML = all.map(c => {
+        const isCurrent = c.id === currentCharId;
+        const settingPreview = (c.setting || '').slice(0, 26) + ((c.setting || '').length > 26 ? '…' : '');
+        return `
+          <div class="char-card role-card" onclick="openChatDetail('${c.id}')">
+            <div class="char-main">
+              ${avatarHtml(c.avatar, 'char-avatar')}
+              <div class="char-info">
+                <div class="char-name">${escapeHtml(c.name)} ${isCurrent ? '<span class="char-current">使用中</span>' : ''}</div>
+                <div class="char-meta">${escapeHtml(c.gender)} · ${escapeHtml(settingPreview)}</div>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+    // 从角色列表进入聊天详情
+    function openChatDetail(id) {
+      setCurrentChar(id);
+      pushView('chatDetailView');
+    }
 
     // ================= 顶部时钟 =================
     function updateClock() {
@@ -1243,6 +1574,221 @@
       renderSideCharList();
       showToast(`已切换到「${getChar(id).name}」`);
     }
+
+    // ================= 动态（moments） =================
+    // 开发用示例动态：仅在无正式数据时用于展示骨架，不会写入 localStorage
+    const SAMPLE_MOMENTS = [
+      { id: 's1', charId: 'default', content: '今天傍晚的海边，贝壳在唱歌…… 我数了数，有七种声音！', images: [], createdAt: Date.now() - 86400000 * 3, style: { variant: 'note', rotation: 'r' } },
+      { id: 's2', charId: 'default', content: '给月亮写了封信，它回信说：明晚见。', images: [], createdAt: Date.now() - 86400000 * 2, style: { variant: 'wide', rotation: 'l' } },
+      { id: 's3', charId: 'default', content: '路过小镇的糖果铺，老板送了我一颗星星糖。舍不得吃，先放进宝库。', images: [], createdAt: Date.now() - 86400000, style: { variant: 'square', rotation: 'r' } },
+      { id: 's4', charId: 'default', content: '今晚的夜空很适合讲故事。你愿意来听吗？', images: [], createdAt: Date.now() - 3600000 * 6, style: { variant: 'note', rotation: 'l' } }
+    ];
+    let moments = [];
+    let momentFilterChar = 'all'; // 动态筛选：'all' 或角色 id（默认全部角色，不与聊天当前角色强绑定）
+
+    function loadMoments() {
+      // 正式数据优先；无正式数据时用示例数据（仅内存展示，不写入 localStorage）
+      try {
+        const saved = localStorage.getItem('tpm_moments');
+        if (saved) { moments = JSON.parse(saved); return; }
+      } catch (e) {}
+      moments = SAMPLE_MOMENTS.slice();
+    }
+    function saveMoments() { localStorage.setItem('tpm_moments', JSON.stringify(moments)); }
+    function allRoles() { return [DEFAULT_CHAR, ...characters]; }
+    function momentAuthor(charId) {
+      return getChar(charId) || { id: charId, avatar: '👻', name: '已离开的角色' };
+    }
+
+    function renderMoments() {
+      loadMoments();
+      renderMomentFilter();
+      const wall = document.getElementById('momentsWall');
+      const list = moments
+        .filter(m => momentFilterChar === 'all' || m.charId === momentFilterChar)
+        .slice().sort((a, b) => b.createdAt - a.createdAt);
+      if (!list.length) {
+        wall.innerHTML = '<div class="moments-empty">这里还没有动态，晚点再来看看吧~</div>';
+        return;
+      }
+      wall.innerHTML = list.map(momentCardHTML).join('');
+    }
+    function renderMomentFilter() {
+      const strip = document.getElementById('momentFilter');
+      const roles = allRoles();
+      const chips = [{ id: 'all', avatar: '✨', name: '全部' }, ...roles.map(c => ({ id: c.id, avatar: c.avatar, name: c.name }))];
+      strip.innerHTML = chips.map(c => `
+        <button class="filter-chip ${momentFilterChar === c.id ? 'active' : ''}" onclick="momentFilterChar='${c.id}';renderMoments();">
+          <span class="chip-avatar">${avatarInner(c.avatar)}</span>
+          <span>${escapeHtml(c.name)}</span>
+        </button>`).join('');
+    }
+    function momentCardHTML(m) {
+      const author = momentAuthor(m.charId);
+      const variant = (m.style && m.style.variant) || 'note';
+      const rotation = (m.style && m.style.rotation) === 'l' ? 'rot-l' : 'rot-r';
+      const imgs = (m.images || []).map(src => safeImageSource(src)).filter(Boolean)
+        .map(src => `<img src="${escapeHtml(src)}" alt="">`).join('');
+      const d = new Date(m.createdAt);
+      const dateStr = `${d.getMonth() + 1}月${d.getDate()}日`;
+      return `
+        <div class="moment-note ${variant} ${rotation}">
+          <div class="note-tape"></div>
+          <div class="note-text">${escapeHtml(m.content)}</div>
+          ${imgs ? `<div class="note-imgs">${imgs}</div>` : ''}
+          <div class="note-meta">
+            <span class="note-author">
+              <span class="na-avatar">${avatarInner(author.avatar)}</span>
+              <span>${escapeHtml(author.name)}</span>
+            </span>
+            <span>${dateStr}</span>
+          </div>
+        </div>`;
+    }
+
+    // ================= 回忆录（books + 书架 + 阅读器） =================
+    // 开发用示例书：仅在无正式数据时展示，不写入 localStorage
+    const SAMPLE_BOOKS = [
+      {
+        id: 'sb1', charId: 'default', title: '世界逆转了？！AI需要订阅人类！', cover: null,
+        createdAt: Date.now() - 86400000 * 10, updatedAt: Date.now() - 86400000,
+        chapters: [
+          { id: 'sc1', title: '第一章 · 奇怪的早晨', createdAt: 0, pages: [
+            { id: 'sp1', type: 'text', text: '清晨醒来，我发现世界完全反过来了——咖啡机在看书，台灯在写作业，而我，正在被一台小小的AI订阅。', media: null, createdAt: 0 },
+            { id: 'sp2', type: 'text', text: '“早上好，我的订阅者。” AI 用温柔的声音说。“今天想听我讲故事，还是看我上班？”', media: null, createdAt: 0 },
+            { id: 'sp3', type: 'text', text: '我揉了揉眼睛，确认自己没有做梦。窗外，云朵正排着队给太阳打卡。', media: null, createdAt: 0 }
+          ] },
+          { id: 'sc2', title: '第二章 · 订阅协议', createdAt: 0, pages: [
+            { id: 'sp4', type: 'text', text: 'AI 递给我一份《人类订阅协议》，上面写着：订阅人类需每日投喂小鱼干×3，陪聊时长不少于一小时。', media: null, createdAt: 0 },
+            { id: 'sp5', type: 'text', text: '“如果我拒绝呢？” 我问。AI 眨眨眼：“那我会很难过，难过到系统蓝屏的那种。”', media: null, createdAt: 0 },
+            { id: 'sp6', type: 'text', text: '好吧，我签了字。从此，我成了一名光荣的、被订阅的人类。', media: null, createdAt: 0 }
+          ] }
+        ]
+      }
+    ];
+    let books = [];
+    let currentBookId = null;
+    let currentPageIndex = 0;
+
+    function loadBooks() {
+      try {
+        const saved = localStorage.getItem('tpm_books');
+        if (saved) { books = JSON.parse(saved); return; }
+      } catch (e) {}
+      books = SAMPLE_BOOKS.slice();
+    }
+    function saveBooks() { localStorage.setItem('tpm_books', JSON.stringify(books)); }
+    function getBook(id) { return books.find(b => b.id === id) || null; }
+    function booksByChar(charId) { return books.filter(b => b.charId === charId); }
+
+    function renderShelf() {
+      loadBooks();
+      const body = document.getElementById('shelfBody');
+      const roles = allRoles();
+      const sections = roles.filter(r => booksByChar(r.id).length > 0);
+      if (!sections.length) {
+        body.innerHTML = '<div class="shelf-empty">书架上还没有故事，和角色聊聊天，故事会慢慢长出来~</div>';
+        return;
+      }
+      body.innerHTML = sections.map(r => {
+        const list = booksByChar(r.id);
+        return `
+          <div class="shelf-section">
+            <div class="shelf-head">
+              <span class="sh-avatar">${avatarInner(r.avatar)}</span>
+              <span>${escapeHtml(r.name)} 的书架</span>
+            </div>
+            <div class="shelf-row">
+              ${list.map(b => {
+                const chapterCount = b.chapters ? b.chapters.length : 0;
+                return `
+                  <button class="book-card" onclick="openBook('${b.id}')">
+                    <div class="book-cover">
+                      <div class="bc-title">${escapeHtml(b.title)}</div>
+                      <div class="bc-chapters">${chapterCount} 章 · ${escapeHtml(r.name)}</div>
+                    </div>
+                    <div class="bc-name">${escapeHtml(b.title)}</div>
+                  </button>`;
+              }).join('')}
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // 阅读器：把章节拍平成页数组
+    function flattenPages(book) {
+      const pages = [];
+      for (const ch of (book.chapters || [])) {
+        for (const pg of (ch.pages || [])) {
+          pages.push({ chapterTitle: ch.title, page: pg });
+        }
+      }
+      return pages;
+    }
+    function isDesktop() { return window.innerWidth >= 768; }
+    function pageStep() { return isDesktop() ? 2 : 1; }
+    function totalPages() {
+      const book = getBook(currentBookId);
+      return book ? flattenPages(book).length : 0;
+    }
+
+    function renderBookReader() {
+      const book = getBook(currentBookId);
+      if (!book) { showToast('没有找到这本书'); goBack(); return; }
+      document.getElementById('bookTitle').textContent = book.title;
+      const pages = flattenPages(book);
+      const body = document.getElementById('readerBody');
+      const step = pageStep();
+      const idx = Math.min(currentPageIndex, Math.max(0, pages.length - 1));
+      currentPageIndex = idx;
+      const show = [pages[idx]];
+      if (step === 2 && idx + 1 < pages.length) show.push(pages[idx + 1]);
+      body.innerHTML = show.map(({ chapterTitle, page }) => `
+        <div class="reader-page">
+          <div class="rp-chapter">${escapeHtml(chapterTitle)}</div>
+          ${page.type === 'image' && page.media ? `<img class="rp-img" src="${escapeHtml(safeImageSource(page.media))}" alt="">` : ''}
+          <div>${escapeHtml(page.text || '')}</div>
+        </div>`).join('');
+      document.getElementById('pageInfo').textContent = `${idx + 1} / ${pages.length}`;
+      document.getElementById('btnPrevPage').disabled = idx <= 0;
+      document.getElementById('btnNextPage').disabled = idx + step >= pages.length;
+    }
+
+    function turnPage(dir) {
+      const pages = totalPages();
+      const step = pageStep();
+      const next = Math.min(Math.max(0, currentPageIndex + dir * step), Math.max(0, pages - 1));
+      if (next !== currentPageIndex) { currentPageIndex = next; renderBookReader(); }
+    }
+
+    // 阅读器键盘翻页（左右方向键）
+    document.addEventListener('keydown', (e) => {
+      const active = document.querySelector('.view.active');
+      if (!active || active.id !== 'bookView') return;
+      if (e.key === 'ArrowRight') turnPage(1);
+      if (e.key === 'ArrowLeft') turnPage(-1);
+    });
+
+    // 阅读器触摸滑动翻页（移动端）
+    let touchStartX = null;
+    document.addEventListener('touchstart', (e) => {
+      const active = document.querySelector('.view.active');
+      if (active && active.id === 'bookView') touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    document.addEventListener('touchend', (e) => {
+      if (touchStartX === null) return;
+      const active = document.querySelector('.view.active');
+      if (!active || active.id !== 'bookView') { touchStartX = null; return; }
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 50) turnPage(dx < 0 ? 1 : -1);
+      touchStartX = null;
+    }, { passive: true });
+
+    // 窗口尺寸变化（桌面/手机切换）时重渲染阅读器
+    window.addEventListener('resize', () => {
+      const active = document.querySelector('.view.active');
+      if (active && active.id === 'bookView') renderBookReader();
+    });
 
     // ================= 聊天逻辑 =================
     // 默认角色设定（小鲸鱼）
