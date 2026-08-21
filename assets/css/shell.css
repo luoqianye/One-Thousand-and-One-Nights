@@ -1,0 +1,13 @@
+/* ============ 视图切换 ============ */
+.view { display: none; width: 100%; height: 100%; }
+.view.active { display: flex; }
+
+/* ============ 对话功能区（角色列表 / 动态 / 其他） ============ */
+/* 对话相关页面使用独立近全视口工作区，不继承首页的中央卡片外壳。 */
+body.workspace-mode {
+  padding: 0; align-items: stretch;
+}
+body.workspace-mode .app {
+  max-width: none; width: 100vw; height: 100vh; height: 100dvh;
+  border-radius: 0; box-shadow: none;
+}

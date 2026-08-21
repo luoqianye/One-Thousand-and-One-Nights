@@ -1,0 +1,76 @@
+/* ============ 主界面 ============ */
+#homeView {
+  flex-direction: column;
+  padding: 20px 16px;
+  gap: 16px;
+  overflow-y: auto;
+  background: #f0f4fa;
+}
+/* 顶部时钟卡片（预留时钟插件位置） */
+.clock-card {
+  background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
+  border-radius: 20px; padding: 22px 20px; color: #fff;
+  box-shadow: 0 10px 30px rgba(30, 58, 138, 0.3);
+}
+.clock-row { display: flex; align-items: center; justify-content: space-between; }
+.clock-moon { font-size: 40px; opacity: 0.95; }
+.clock-time {
+  font-size: 46px; font-weight: 700; letter-spacing: 2px;
+  font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.clock-date { margin-top: 6px; font-size: 13px; color: rgba(255,255,255,0.78); }
+.clock-hint { margin-top: 14px; font-size: 11px; color: rgba(255,255,255,0.4); }
+
+/* 功能区 2×4 网格：同行一宽一窄（2/3 : 1/3），逐行左右交替 */
+.fun-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr); /* 6 等分：宽卡 4 份(2/3)，窄卡 2 份(1/3) */
+  gap: 12px;
+}
+.fun-card {
+  border: none; cursor: pointer; font-family: inherit;
+  border-radius: 16px; padding: 16px; color: #fff;
+  display: flex; align-items: center; gap: 12px;
+  min-height: 88px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+  transition: transform 0.15s;
+}
+.fun-card:active { transform: scale(0.97); }
+/* 窄卡片：竖排居中 */
+.fun-card.narrow {
+  flex-direction: column; justify-content: center; gap: 6px;
+  padding: 12px; text-align: center;
+}
+.fun-icon { font-size: 26px; line-height: 1; flex-shrink: 0; }
+.fun-name { font-size: 15px; font-weight: 700; }
+.fun-desc { font-size: 11px; opacity: 0.88; margin-top: 2px; line-height: 1.4; }
+
+/* 宽窄位置：行1/3 左宽右窄，行2/4 左窄右宽 */
+.f1 { grid-column: 1 / span 4; }
+.f2 { grid-column: 5 / span 2; }
+.f3 { grid-column: 1 / span 2; }
+.f4 { grid-column: 3 / span 4; }
+.f5 { grid-column: 1 / span 4; }
+.f6 { grid-column: 5 / span 2; }
+.f7 { grid-column: 1 / span 2; }
+.f8 { grid-column: 3 / span 4; }
+
+/* 各功能区主题色 */
+.f-chat     { background: linear-gradient(135deg, #34d399 0%, #0ea5a4 100%); }
+.f-story    { background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); }
+.f-genie    { background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%); }
+.f-map      { background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); }
+.f-memoir   { background: linear-gradient(135deg, #a16207 0%, #713f12 100%); }
+.f-chara    { background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%); }
+.f-vault    { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); }
+.f-settings { background: linear-gradient(135deg, #64748b 0%, #475569 100%); }
+
+/* 窄屏：卡片压缩，保持宽窄比例 */
+@media (max-width: 480px) {
+  .fun-grid { gap: 10px; }
+  .fun-card { padding: 13px; min-height: 80px; gap: 10px; }
+  .fun-card.narrow { padding: 10px; gap: 5px; }
+  .fun-icon { font-size: 22px; }
+  .fun-name { font-size: 14px; }
+}
+
