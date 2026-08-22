@@ -30,6 +30,11 @@
           </div>`;
       }).join('');
     }
+    // 从聊天详情/动态等子页跳转到功能区指定子层
+    function goToChatSection(name) {
+      pushView('chatView');
+      switchChatSub(name);
+    }
     // 从角色列表进入聊天详情
     function openChatDetail(id) {
       setCurrentChar(id);
@@ -84,11 +89,19 @@
           </button>`).join('');
       }
     }
-    // 聊天视图：标题只显示当前角色名，并刷新角色列表高亮
+    // 聊天视图：标题只显示当前角色名，刷新角色信息卡与角色列表高亮
     function updateChatHeader() {
       const c = getCurrentChar();
       const titleEl = document.getElementById('chatTitle');
       if (titleEl) titleEl.textContent = c.name;
+      const ia = document.getElementById('infoAvatar');
+      if (ia) ia.innerHTML = avatarInner(c.avatar);
+      const inName = document.getElementById('infoName');
+      if (inName) inName.textContent = c.name;
+      const inGender = document.getElementById('infoGender');
+      if (inGender) inGender.textContent = c.gender || '';
+      const inSetting = document.getElementById('infoSetting');
+      if (inSetting) inSetting.textContent = c.setting || '';
       renderSideCharList();
     }
     // 主界面对话聊天卡片显示当前角色
@@ -446,4 +459,75 @@ function loadMessages() {
     // 按回车发送
     userInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') send();
+    });
+
+    // ============ 左右侧卡片视图切换（点击一次进入，再点一次返回） ============
+    let sideView = 'info';
+    function toggleSideView() {
+      setSideView(sideView === 'info' ? 'list' : 'info');
+    }
+    function setSideView(view) {
+      sideView = view;
+      const infoView = document.getElementById('infoView');
+      const listView = document.getElementById('listView');
+      const btn = document.getElementById('sideSwitchBtn');
+      if (infoView) infoView.style.display = view === 'info' ? 'flex' : 'none';
+      if (listView) listView.style.display = view === 'list' ? 'flex' : 'none';
+      if (btn) btn.textContent = view === 'list' ? '🐳 角色信息' : '👥 角色列表';
+      if (view === 'list') renderSideCharList();
+    }
+    let statusView = 'status';
+    function toggleStatusView() {
+      setStatusView(statusView === 'status' ? 'settings' : 'status');
+    }
+    function setStatusView(view) {
+      statusView = view;
+      const sv = document.getElementById('statusView');
+      const stv = document.getElementById('statusSettingsView');
+      const btn = document.getElementById('statusSwitchBtn');
+      if (sv) sv.style.display = view === 'status' ? 'flex' : 'none';
+      if (stv) stv.style.display = view === 'settings' ? 'flex' : 'none';
+      if (btn) btn.textContent = view === 'settings' ? '🎯 角色状态' : '⚙️ 角色设置';
+    }
+
+    // ============ 聊天输入区弹出菜单（仅 UI 展示） ============
+    let chatPopupOpen = null;
+    function toggleChatMenu(type) {
+      const popup = document.getElementById('chatPopup');
+      if (!popup) return;
+      if (chatPopupOpen === type) {
+        popup.style.display = 'none';
+        chatPopupOpen = null;
+        return;
+      }
+      chatPopupOpen = type;
+      if (type === 'functions') {
+        const items = [
+          { icon: '📷', label: '图片' },
+          { icon: '🧧', label: '红包' },
+          { icon: '🎁', label: '礼物' },
+          { icon: '🎤', label: '语音聊天' },
+          { icon: '📍', label: '位置' }
+        ];
+        popup.innerHTML = '<div class="popup-title">聊天功能</div><div class="chat-popup-grid">' +
+          items.map(i => `<button class="popup-item" onclick="showToast('「${i.label}」功能开发中，敬请期待~')"><span class="pi-icon">${i.icon}</span><span>${i.label}</span></button>`).join('') +
+          '</div>';
+      } else if (type === 'emoji') {
+        popup.innerHTML = '<div class="popup-title">表情</div><div class="chat-popup-emoji">' +
+          CHAR_EMOJIS.map(e => `<button onclick="insertEmoji('${e}')">${e}</button>`).join('') +
+          '</div>';
+      }
+      popup.style.display = 'block';
+    }
+    function insertEmoji(emoji) {
+      userInput.value += emoji;
+      userInput.focus();
+    }
+    // 点击输入区外部关闭弹出菜单
+    document.addEventListener('click', (e) => {
+      if (chatPopupOpen && !e.target.closest('.input-wrap')) {
+        const popup = document.getElementById('chatPopup');
+        if (popup) popup.style.display = 'none';
+        chatPopupOpen = null;
+      }
     });

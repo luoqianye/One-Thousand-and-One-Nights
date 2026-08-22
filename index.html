@@ -82,11 +82,22 @@
 
     <!-- ================= 对话聊天功能区（角色列表 / 动态 / 其他） ================= -->
     <section id="chatView" class="view workspace-view">
-      <div class="header">
+      <!-- 桌面端：返回键 | 子导航居中 | 标题靠右（一行三栏） -->
+      <div class="header zone-header desktop-only">
+        <button class="back-btn" onclick="goBack()" title="返回首页">←</button>
+        <nav class="chat-subnav">
+          <button class="subnav-item active" data-sub="rolelist" onclick="switchChatSub('rolelist')">👤 角色列表</button>
+          <button class="subnav-item" onclick="openMoments()">📝 动态</button>
+          <button class="subnav-item" data-sub="other" onclick="switchChatSub('other')">⋯ 其他</button>
+        </nav>
+        <span class="zone-title">对话聊天</span>
+      </div>
+      <!-- 手机端：保持原布局（返回+标题一行，子导航底部） -->
+      <div class="header mobile-only">
         <button class="back-btn" onclick="goBack()" title="返回首页">←</button>
         <span>对话聊天</span>
       </div>
-      <nav class="chat-subnav">
+      <nav class="chat-subnav mobile-only">
         <button class="subnav-item active" data-sub="rolelist" onclick="switchChatSub('rolelist')">👤 角色列表</button>
         <button class="subnav-item" onclick="openMoments()">📝 动态</button>
         <button class="subnav-item" data-sub="other" onclick="switchChatSub('other')">⋯ 其他</button>
@@ -103,11 +114,22 @@
 
     <!-- ================= 独立动态工作区 ================= -->
     <section id="momentsView" class="view workspace-view">
-      <div class="header">
+      <!-- 桌面端：返回键 | 子导航居中 | 标题靠右（一行三栏） -->
+      <div class="header zone-header desktop-only">
+        <button class="back-btn" onclick="returnToChatView()" title="返回对话聊天">←</button>
+        <nav class="chat-subnav">
+          <button class="subnav-item" onclick="returnToChatSection('rolelist')">👤 角色列表</button>
+          <button class="subnav-item active" aria-current="page">📝 动态</button>
+          <button class="subnav-item" onclick="returnToChatSection('other')">⋯ 其他</button>
+        </nav>
+        <span class="zone-title">动态</span>
+      </div>
+      <!-- 手机端：保持原布局 -->
+      <div class="header mobile-only">
         <button class="back-btn" onclick="returnToChatView()" title="返回对话聊天">←</button>
         <span>动态</span>
       </div>
-      <nav class="chat-subnav">
+      <nav class="chat-subnav mobile-only">
         <button class="subnav-item" onclick="returnToChatSection('rolelist')">👤 角色列表</button>
         <button class="subnav-item active" aria-current="page">📝 动态</button>
         <button class="subnav-item" onclick="returnToChatSection('other')">⋯ 其他</button>
@@ -120,24 +142,74 @@
 
     <!-- ================= 聊天详情视图 ================= -->
     <section id="chatDetailView" class="view workspace-view">
-      <aside class="sidebar">
-        <div class="sidebar-head">🐳 角色</div>
-        <div class="side-char-list" id="sideCharList"></div>
-        <div class="sidebar-tip">💡 右键 / 长按气泡<br>可编辑、删除、重新生成</div>
-      </aside>
-      <div class="chat-panel">
-        <div class="header">
-          <button class="back-btn" onclick="goBack()" title="返回上一页">←</button>
-          <span id="chatTitle">小鲸鱼</span>
+      <!-- 桌面端：顶部导航栏常驻（返回 | 子导航 | 大功能区名称） -->
+      <div class="header zone-header desktop-only">
+        <button class="back-btn" onclick="goBack()" title="返回对话聊天">←</button>
+        <nav class="chat-subnav">
+          <button class="subnav-item" onclick="goToChatSection('rolelist')">👤 角色列表</button>
+          <button class="subnav-item" onclick="openMoments()">📝 动态</button>
+          <button class="subnav-item" onclick="goToChatSection('other')">⋯ 其他</button>
+        </nav>
+        <span class="zone-title">对话聊天</span>
+      </div>
+      <div class="chat-cards">
+        <!-- 左卡：角色信息 / 角色列表 双视图 -->
+        <aside class="sidebar info-side">
+          <div class="sidebar-head"></div>
+          <div class="side-view" id="infoView">
+            <div class="info-char">
+              <div class="info-avatar" id="infoAvatar">🐳</div>
+              <div class="info-name" id="infoName">小鲸鱼</div>
+              <div class="info-gender" id="infoGender">保密</div>
+              <div class="info-setting" id="infoSetting"></div>
+            </div>
+          </div>
+          <div class="side-view" id="listView" style="display:none">
+            <div class="side-char-list" id="sideCharList"></div>
+          </div>
+          <div class="sidebar-tip">💡 右键 / 长按气泡<br>可编辑、删除、重新生成</div>
+          <button class="side-switch-btn" id="sideSwitchBtn" onclick="toggleSideView()">👥 角色列表</button>
+        </aside>
+        <!-- 中卡：聊天 -->
+        <div class="chat-panel">
+          <!-- 手机端：保留原 header（含返回键） -->
+          <div class="header mobile-only">
+            <button class="back-btn" onclick="goBack()" title="返回上一页">←</button>
+            <span id="chatTitle">小鲸鱼</span>
+          </div>
+          <div class="char-strip" id="charStrip"></div>
+          <div class="model-bar">
+            <select id="chatModelSelect" onchange="onChatModelChange(this)"></select>
+          </div>
+          <div class="chat-area" id="chatArea"></div>
+          <div class="input-wrap">
+            <div class="chat-popup" id="chatPopup" style="display:none"></div>
+            <div class="input-area">
+              <button class="chat-menu-btn desktop-only" onclick="toggleChatMenu('functions')" title="聊天功能菜单">➕</button>
+              <input type="text" id="userInput" placeholder="说点什么..." autocomplete="off">
+              <button class="chat-emoji-btn desktop-only" onclick="toggleChatMenu('emoji')" title="表情">😊</button>
+              <button onclick="send()">➤</button>
+            </div>
+          </div>
         </div>
-        <div class="char-strip" id="charStrip"></div>
-        <div class="model-bar">
-          <select id="chatModelSelect" onchange="onChatModelChange(this)"></select>
-        </div>
-        <div class="chat-area" id="chatArea"></div>
-        <div class="input-area">
-          <input type="text" id="userInput" placeholder="说点什么..." autocomplete="off">
-          <button onclick="send()">➤</button>
+        <!-- 右卡：角色状态 / 角色设置 双视图 -->
+        <div class="status-side">
+          <div class="status-head"></div>
+          <div class="side-view" id="statusView">
+            <div class="status-body">
+              <div class="status-item">💗 心情：平静而温柔</div>
+              <div class="status-item">⚡ 精力：充沛</div>
+              <div class="status-item">🟢 状态：聊天中</div>
+            </div>
+          </div>
+          <div class="side-view" id="statusSettingsView" style="display:none">
+            <div class="status-body">
+              <div class="status-item">🎨 界面主题（开发中）</div>
+              <div class="status-item">🔔 消息提醒（开发中）</div>
+              <div class="status-item">📏 字体大小（开发中）</div>
+            </div>
+          </div>
+          <button class="side-switch-btn" id="statusSwitchBtn" onclick="toggleStatusView()">⚙️ 角色设置</button>
         </div>
       </div>
     </section>
